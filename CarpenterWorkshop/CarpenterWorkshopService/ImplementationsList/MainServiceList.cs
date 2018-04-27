@@ -10,215 +10,136 @@ using System.Threading.Tasks;
 
 namespace CarpenterWorkshopService.ImplementationsList
 {
-    
-        public class MainServiceList : IMainService
+
+    public class MainServiceList : IMainService
+    {
+        private DataListSingleton source;
+
+        public MainServiceList()
         {
-            private DataListSingleton source;
+            source = DataListSingleton.GetInstance();
+        }
 
-            public MainServiceList()
-            {
-                source = DataListSingleton.GetInstance();
-            }
-
-            public List<OrdProductViewModel> GetList()
-            {
-                List<OrdProductViewModel> result = new List<OrdProductViewModel>();
-                for (int i = 0; i < source.OrdProducts.Count; ++i)
+        public List<OrdProductViewModel> GetList()
+        {
+            List<OrdProductViewModel> result = source.OrdProducts
+                .Select(rec => new OrdProductViewModel
                 {
-                    string customerFIO = string.Empty;
-                    for (int j = 0; j < source.Сustomers.Count; ++j)
-                    {
-                        if (source.Сustomers[j].Id == source.OrdProducts[i].CustomerID)
-                        {
-                            customerFIO = source.Сustomers[j].CustomerFIO;
-                            break;
-                        }
-                    }
-                    string woodCraftsName = string.Empty;
-                    for (int j = 0; j < source.WoodCrafts.Count; ++j)
-                    {
-                        if (source.WoodCrafts[j].Id == source.OrdProducts[i].WoodCraftsID)
-                        {
-                            woodCraftsName = source.WoodCrafts[j].WoodCraftsName;
-                            break;
-                        }
-                    }
-                    string workerFIO = string.Empty;
-                    if (source.OrdProducts[i].WorkerID.HasValue)
-                    {
-                        for (int j = 0; j < source.Workers.Count; ++j)
-                        {
-                            if (source.Workers[j].Id == source.OrdProducts[i].WorkerID.Value)
-                            {
-                                workerFIO = source.Workers[j].WorkerFIO;
-                                break;
-                            }
-                        }
-                    }
-                    result.Add(new OrdProductViewModel
-                    {
-                        Id = source.OrdProducts[i].Id,
-                        CustomerID = source.OrdProducts[i].CustomerID,
-                        CustomerFIO = customerFIO,
-                        WoodCraftsID = source.OrdProducts[i].WoodCraftsID,
-                        WoodCraftsName = woodCraftsName,
-                        WorkerID = source.OrdProducts[i].WorkerID,
-                        WorkerName = workerFIO,
-                        Count = source.OrdProducts[i].Count,
-                        Sum = source.OrdProducts[i].Sum,
-                        DateCreate = source.OrdProducts[i].DateCreate.ToLongDateString(),
-                        DateImplement = source.OrdProducts[i].DateImplement?.ToLongDateString(),
-                        Status = source.OrdProducts[i].Status.ToString()
-                    });
+                    Id = rec.Id,
+                    CustomerID = rec.CustomerID,
+                    WoodCraftsID = rec.WoodCraftsID,
+                    WorkerID = rec.WorkerID,
+                    DateCreate = rec.DateCreate.ToLongDateString(),
+                    DateImplement = rec.DateImplement?.ToLongDateString(),
+                    Status = rec.Status.ToString(),
+                    Count = rec.Count,
+                    Sum = rec.Sum,
+                    CustomerFIO = source.Сustomers
+                                    .FirstOrDefault(recC => recC.Id == rec.CustomerID)?.CustomerFIO,
+                    WoodCraftsName = source.WoodCrafts
+                                    .FirstOrDefault(recP => recP.Id == rec.WoodCraftsID)?.WoodCraftsName,
+                    WorkerName = source.Workers
+                                    .FirstOrDefault(recI => recI.Id == rec.WorkerID)?.WorkerFIO
+                })
+                .ToList();
+            return result;
+        }
+
+        public void CreateOrder(OrdProductBindingModel model)
+        {
+            int maxId = source.OrdProducts.Count > 0 ? source.OrdProducts.Max(rec => rec.Id) : 0;
+            source.OrdProducts.Add(new OrdProduct
+            {
+                Id = maxId + 1,
+                CustomerID = model.CustomerID,
+                WoodCraftsID = model.WoodCraftsID,
+                DateCreate = DateTime.Now,
+                Count = model.Count,
+                Sum = model.Sum,
+                Status = ReadyProduct.Принят
+            });
+        }
+
+        public void TakeOrderInWork(OrdProductBindingModel model)
+        {
+            OrdProduct element = source.OrdProducts.FirstOrDefault(rec => rec.Id == model.Id);
+            if (element == null)
+            {
+                throw new Exception("Элемент не найден");
+            }
+            // смотрим по количеству компонентов на складах
+            var blankCrafts = source.BlanksCrafts.Where(rec => rec.WoodCraftsID == element.WoodCraftsID);
+            foreach (var blankCraft in blankCrafts)
+            {
+                int countOnStocks = source.StorageBlanks
+                                            .Where(rec => rec.WoodBlanksID == blankCraft.WoodBlanksID)
+                                            .Sum(rec => rec.Count);
+                if (countOnStocks < blankCraft.Count * element.Count)
+                {
+                    var woodBlanksName = source.WoodBlanks
+                                    .FirstOrDefault(rec => rec.Id == blankCraft.WoodBlanksID);
+                    throw new Exception("Не достаточно компонента " + woodBlanksName?.WoodBlanksName +
+                        " требуется " + blankCraft.Count + ", в наличии " + countOnStocks);
                 }
-                return result;
             }
-
-            public void CreateOrder(OrdProductBindingModel model)
+            // списываем
+            foreach (var blankCraft in blankCrafts)
             {
-                int maxId = 0;
-                for (int i = 0; i < source.OrdProducts.Count; ++i)
+                int countOnStorage = blankCraft.Count * element.Count;
+                var storageBlanks = source.StorageBlanks
+                                            .Where(rec => rec.WoodBlanksID == blankCraft.WoodBlanksID);
+                foreach (var storageBlank in storageBlanks)
                 {
-                    if (source.OrdProducts[i].Id > maxId)
+                    // компонентов на одном слкаде может не хватать
+                    if (storageBlank.Count >= countOnStorage)
                     {
-                        maxId = source.Сustomers[i].Id;
-                    }
-                }
-                source.OrdProducts.Add(new OrdProduct
-                {
-                    Id = maxId + 1,
-                    CustomerID = model.CustomerID,
-                    WoodCraftsID = model.WoodCraftsID,
-                    DateCreate = DateTime.Now,
-                    Count = model.Count,
-                    Sum = model.Sum,
-                    Status = ReadyProduct.Принят
-                });
-            }
-
-            public void TakeOrderInWork(OrdProductBindingModel model)
-            {
-                int index = -1;
-                for (int i = 0; i < source.OrdProducts.Count; ++i)
-                {
-                    if (source.OrdProducts[i].Id == model.Id)
-                    {
-                        index = i;
+                        storageBlank.Count -= countOnStorage;
                         break;
                     }
-                }
-                if (index == -1)
-                {
-                    throw new Exception("Элемент не найден");
-                }
-                // смотрим по количеству компонентов на складах
-                for (int i = 0; i < source.BlanksCrafts.Count; ++i)
-                {
-                    if (source.BlanksCrafts[i].WoodCraftsID == source.OrdProducts[index].WoodCraftsID)
+                    else
                     {
-                        int countOnStocks = 0;
-                        for (int j = 0; j < source.StorageBlanks.Count; ++j)
-                        {
-                            if (source.StorageBlanks[j].WoodBlanksID == source.BlanksCrafts[i].WoodBlanksID)
-                            {
-                                countOnStocks += source.StorageBlanks[j].Count;
-                            }
-                        }
-                        if (countOnStocks < source.BlanksCrafts[i].Count * source.OrdProducts[index].Count)
-                        {
-                            for (int j = 0; j < source.WoodBlanks.Count; ++j)
-                            {
-                                if (source.WoodBlanks[j].Id == source.BlanksCrafts[i].WoodBlanksID)
-                                {
-                                    throw new Exception("Не достаточно компонента " + source.WoodBlanks[j].WoodBlanksName +
-                                        " требуется " + source.BlanksCrafts[i].Count + ", в наличии " + countOnStocks);
-                                }
-                            }
-                        }
+                        countOnStorage -= storageBlank.Count;
+                        storageBlank.Count = 0;
                     }
                 }
-                // списываем
-                for (int i = 0; i < source.BlanksCrafts.Count; ++i)
-                {
-                    if (source.BlanksCrafts[i].WoodCraftsID == source.OrdProducts[index].WoodCraftsID)
-                    {
-                        int countOnStocks = source.BlanksCrafts[i].Count * source.OrdProducts[index].Count;
-                        for (int j = 0; j < source.StorageBlanks.Count; ++j)
-                        {
-                            if (source.StorageBlanks[j].WoodBlanksID == source.BlanksCrafts[i].WoodBlanksID)
-                            {
-                                // компонентов на одном слкаде может не хватать
-                                if (source.StorageBlanks[j].Count >= countOnStocks)
-                                {
-                                    source.StorageBlanks[j].Count -= countOnStocks;
-                                    break;
-                                }
-                                else
-                                {
-                                    countOnStocks -= source.StorageBlanks[j].Count;
-                                    source.StorageBlanks[j].Count = 0;
-                                }
-                            }
-                        }
-                    }
-                }
-                source.OrdProducts[index].WorkerID = model.WorkerID;
-                source.OrdProducts[index].DateImplement = DateTime.Now;
-                source.OrdProducts[index].Status = ReadyProduct.Выполняется;
             }
+            element.WorkerID = model.WorkerID;
+            element.DateImplement = DateTime.Now;
+            element.Status = ReadyProduct.Выполняется;
+        }
 
-            public void FinishOrder(int id)
+        public void FinishOrder(int id)
+        {
+            OrdProduct element = source.OrdProducts.FirstOrDefault(rec => rec.Id == id);
+            if (element == null)
             {
-                int index = -1;
-                for (int i = 0; i < source.OrdProducts.Count; ++i)
-                {
-                    if (source.Сustomers[i].Id == id)
-                    {
-                        index = i;
-                        break;
-                    }
-                }
-                if (index == -1)
-                {
-                    throw new Exception("Элемент не найден");
-                }
-                source.OrdProducts[index].Status = ReadyProduct.Готов;
+                throw new Exception("Элемент не найден");
             }
+            element.Status = ReadyProduct.Готов;
+        }
 
-            public void PayOrder(int id)
+        public void PayOrder(int id)
+        {
+            OrdProduct element = source.OrdProducts.FirstOrDefault(rec => rec.Id == id);
+            if (element == null)
             {
-                int index = -1;
-                for (int i = 0; i < source.OrdProducts.Count; ++i)
-                {
-                    if (source.Сustomers[i].Id == id)
-                    {
-                        index = i;
-                        break;
-                    }
-                }
-                if (index == -1)
-                {
-                    throw new Exception("Элемент не найден");
-                }
-                source.OrdProducts[index].Status = ReadyProduct.Оплачен;
+                throw new Exception("Элемент не найден");
             }
+            element.Status = ReadyProduct.Оплачен;
+        }
 
-            public void PutComponentOnStock(StorageBlankBindingModel model)
+        public void PutComponentOnStock(StorageBlankBindingModel model)
+        {
+            StorageBlank element = source.StorageBlanks
+                                                .FirstOrDefault(rec => rec.StorageID == model.StorageID &&
+                                                                    rec.WoodBlanksID == model.WoodBlanksID);
+            if (element != null)
             {
-                int maxId = 0;
-                for (int i = 0; i < source.StorageBlanks.Count; ++i)
-                {
-                    if (source.StorageBlanks[i].StorageID == model.StorageID &&
-                        source.StorageBlanks[i].WoodBlanksID == model.WoodBlanksID)
-                    {
-                        source.StorageBlanks[i].Count += model.Count;
-                        return;
-                    }
-                    if (source.StorageBlanks[i].Id > maxId)
-                    {
-                        maxId = source.StorageBlanks[i].Id;
-                    }
-                }
+                element.Count += model.Count;
+            }
+            else
+            {
+                int maxId = source.StorageBlanks.Count > 0 ? source.StorageBlanks.Max(rec => rec.Id) : 0;
                 source.StorageBlanks.Add(new StorageBlank
                 {
                     Id = ++maxId,
@@ -229,4 +150,6 @@ namespace CarpenterWorkshopService.ImplementationsList
             }
         }
     }
+}
+    
 

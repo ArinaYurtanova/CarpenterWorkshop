@@ -21,48 +21,38 @@ namespace CarpenterWorkshopService.ImplementationsList
 
         public List<WoodBlankViewModel> GetList()
         {
-            List<WoodBlankViewModel> result = new List<WoodBlankViewModel>();
-            for (int i = 0; i < source.WoodBlanks.Count; ++i)
-            {
-                result.Add(new WoodBlankViewModel
+            List<WoodBlankViewModel> result = source.WoodBlanks
+                .Select(rec => new WoodBlankViewModel
                 {
-                    Id = source.WoodBlanks[i].Id,
-                    WoodBlanksName = source.WoodBlanks[i].WoodBlanksName
-                });
-            }
+                    Id = rec.Id,
+                    WoodBlanksName = rec.WoodBlanksName
+                })
+                .ToList();
             return result;
         }
 
         public WoodBlankViewModel GetElement(int id)
         {
-            for (int i = 0; i < source.WoodBlanks.Count; ++i)
+            WoodBlank element = source.WoodBlanks.FirstOrDefault(rec => rec.Id == id);
+            if (element != null)
             {
-                if (source.WoodBlanks[i].Id == id)
+                return new WoodBlankViewModel
                 {
-                    return new WoodBlankViewModel
-                    {
-                        Id = source.WoodBlanks[i].Id,
-                        WoodBlanksName = source.WoodBlanks[i].WoodBlanksName
-                    };
-                }
+                    Id = element.Id,
+                    WoodBlanksName = element.WoodBlanksName
+                };
             }
             throw new Exception("Элемент не найден");
         }
 
         public void AddElement(WoodBlanksBindingModel model)
         {
-            int maxId = 0;
-            for (int i = 0; i < source.WoodBlanks.Count; ++i)
+            WoodBlank element = source.WoodBlanks.FirstOrDefault(rec => rec.WoodBlanksName == model.WoodBlanksName);
+            if (element != null)
             {
-                if (source.WoodBlanks[i].Id > maxId)
-                {
-                    maxId = source.WoodBlanks[i].Id;
-                }
-                if (source.WoodBlanks[i].WoodBlanksName == model.WoodBlanksName)
-                {
-                    throw new Exception("Уже есть компонент с таким названием");
-                }
+                throw new Exception("Уже есть компонент с таким названием");
             }
+            int maxId = source.WoodBlanks.Count > 0 ? source.WoodBlanks.Max(rec => rec.Id) : 0;
             source.WoodBlanks.Add(new WoodBlank
             {
                 Id = maxId + 1,
@@ -72,37 +62,31 @@ namespace CarpenterWorkshopService.ImplementationsList
 
         public void UpdElement(WoodBlanksBindingModel model)
         {
-            int index = -1;
-            for (int i = 0; i < source.WoodBlanks.Count; ++i)
+            WoodBlank element = source.WoodBlanks.FirstOrDefault(rec =>
+                                        rec.WoodBlanksName == model.WoodBlanksName && rec.Id != model.Id);
+            if (element != null)
             {
-                if (source.WoodBlanks[i].Id == model.Id)
-                {
-                    index = i;
-                }
-                if (source.WoodBlanks[i].WoodBlanksName == model.WoodBlanksName &&
-                    source.WoodBlanks[i].Id != model.Id)
-                {
-                    throw new Exception("Уже есть компонент с таким названием");
-                }
+                throw new Exception("Уже есть компонент с таким названием");
             }
-            if (index == -1)
+            element = source.WoodBlanks.FirstOrDefault(rec => rec.Id == model.Id);
+            if (element == null)
             {
                 throw new Exception("Элемент не найден");
             }
-            source.WoodBlanks[index].WoodBlanksName = model.WoodBlanksName;
+            element.WoodBlanksName = model.WoodBlanksName;
         }
 
         public void DelElement(int id)
         {
-            for (int i = 0; i < source.WoodBlanks.Count; ++i)
+            WoodBlank element = source.WoodBlanks.FirstOrDefault(rec => rec.Id == id);
+            if (element != null)
             {
-                if (source.WoodBlanks[i].Id == id)
-                {
-                    source.WoodBlanks.RemoveAt(i);
-                    return;
-                }
+                source.WoodBlanks.Remove(element);
             }
-            throw new Exception("Элемент не найден");
+            else
+            {
+                throw new Exception("Элемент не найден");
+            }
         }
     }
 }
