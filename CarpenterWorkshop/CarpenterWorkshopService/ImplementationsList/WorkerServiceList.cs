@@ -21,48 +21,38 @@ namespace CarpenterWorkshopService.ImplementationsList
 
         public List<WorkerVeiwModel> GetList()
         {
-            List<WorkerVeiwModel> result = new List<WorkerVeiwModel>();
-            for (int i = 0; i < source.Workers.Count; ++i)
-            {
-                result.Add(new WorkerVeiwModel
+            List<WorkerVeiwModel> result = source.Workers
+                .Select(rec => new WorkerVeiwModel
                 {
-                    Id = source.Workers[i].Id,
-                    WorkerFIO = source.Workers[i].WorkerFIO
-                });
-            }
+                    Id = rec.Id,
+                    WorkerFIO = rec.WorkerFIO
+                })
+                .ToList();
             return result;
         }
 
         public WorkerVeiwModel GetElement(int id)
         {
-            for (int i = 0; i < source.Workers.Count; ++i)
+            Worker element = source.Workers.FirstOrDefault(rec => rec.Id == id);
+            if (element != null)
             {
-                if (source.Workers[i].Id == id)
+                return new WorkerVeiwModel
                 {
-                    return new WorkerVeiwModel
-                    {
-                        Id = source.Workers[i].Id,
-                        WorkerFIO = source.Workers[i].WorkerFIO
-                    };
-                }
+                    Id = element.Id,
+                    WorkerFIO = element.WorkerFIO
+                };
             }
             throw new Exception("Элемент не найден");
         }
 
         public void AddElement(WorkerBindingModel model)
         {
-            int maxId = 0;
-            for (int i = 0; i < source.Workers.Count; ++i)
+            Worker element = source.Workers.FirstOrDefault(rec => rec.WorkerFIO == model.WorkerFIO);
+            if (element != null)
             {
-                if (source.Workers[i].Id > maxId)
-                {
-                    maxId = source.Workers[i].Id;
-                }
-                if (source.Workers[i].WorkerFIO == model.WorkerFIO)
-                {
-                    throw new Exception("Уже есть сотрудник с таким ФИО");
-                }
+                throw new Exception("Уже есть сотрудник с таким ФИО");
             }
+            int maxId = source.Workers.Count > 0 ? source.Workers.Max(rec => rec.Id) : 0;
             source.Workers.Add(new Worker
             {
                 Id = maxId + 1,
@@ -72,37 +62,31 @@ namespace CarpenterWorkshopService.ImplementationsList
 
         public void UpdElement(WorkerBindingModel model)
         {
-            int index = -1;
-            for (int i = 0; i < source.Workers.Count; ++i)
+            Worker element = source.Workers.FirstOrDefault(rec =>
+                                        rec.WorkerFIO == model.WorkerFIO && rec.Id != model.Id);
+            if (element != null)
             {
-                if (source.Workers[i].Id == model.Id)
-                {
-                    index = i;
-                }
-                if (source.Workers[i].WorkerFIO == model.WorkerFIO &&
-                    source.Workers[i].Id != model.Id)
-                {
-                    throw new Exception("Уже есть сотрудник с таким ФИО");
-                }
+                throw new Exception("Уже есть сотрудник с таким ФИО");
             }
-            if (index == -1)
+            element = source.Workers.FirstOrDefault(rec => rec.Id == model.Id);
+            if (element == null)
             {
                 throw new Exception("Элемент не найден");
             }
-            source.Workers[index].WorkerFIO = model.WorkerFIO;
+            element.WorkerFIO = model.WorkerFIO;
         }
 
         public void DelElement(int id)
         {
-            for (int i = 0; i < source.Workers.Count; ++i)
+            Worker element = source.Workers.FirstOrDefault(rec => rec.Id == id);
+            if (element != null)
             {
-                if (source.Workers[i].Id == id)
-                {
-                    source.Workers.RemoveAt(i);
-                    return;
-                }
+                source.Workers.Remove(element);
             }
-            throw new Exception("Элемент не найден");
+            else
+            {
+                throw new Exception("Элемент не найден");
+            }
         }
     }
 }

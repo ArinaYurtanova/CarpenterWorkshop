@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace CarpenterWorkshopService.ImplementationsList
 {
-    public class CustomerServiceList: ICustomerService
+    public class CustomerServiceList : ICustomerService
     {
         private DataListSingleton source;
 
@@ -21,48 +21,39 @@ namespace CarpenterWorkshopService.ImplementationsList
 
         public List<CustomerViewModel> GetList()
         {
-            List<CustomerViewModel> result = new List<CustomerViewModel>();
-            for (int i = 0; i < source.Сustomers.Count; ++i)
+            List<CustomerViewModel> result = source.Сustomers.Select(rec => new CustomerViewModel
             {
-                result.Add(new CustomerViewModel
-                {
-                    Id = source.Сustomers[i].Id,
-                    CustomerFIO = source.Сustomers[i].CustomerFIO
-                });
-            }
+                Id = rec.Id,
+                CustomerFIO = rec.CustomerFIO
+            })
+                .ToList();
             return result;
         }
 
         public CustomerViewModel GetElement(int id)
         {
-            for (int i = 0; i < source.Сustomers.Count; ++i)
+            Сustomer element = source.Сustomers.FirstOrDefault(rec => rec.Id == id);
+            if (element != null)
             {
-                if (source.Сustomers[i].Id == id)
+                return new CustomerViewModel
                 {
-                    return new CustomerViewModel
-                    {
-                        Id = source.Сustomers[i].Id,
-                        CustomerFIO = source.Сustomers[i].CustomerFIO
-                    };
-                }
+                    Id = element.Id,
+                    CustomerFIO = element.CustomerFIO
+
+                };
+
             }
             throw new Exception("Элемент не найден");
         }
 
         public void AddElement(CustomerBidingModel model)
         {
-            int maxId = 0;
-            for (int i = 0; i < source.Сustomers.Count; ++i)
+            Сustomer element = source.Сustomers.FirstOrDefault(rec => rec.CustomerFIO == model.CustomerFIO);
+            if (element != null)
             {
-                if (source.Сustomers[i].Id > maxId)
-                {
-                    maxId = source.Сustomers[i].Id;
-                }
-                if (source.Сustomers[i].CustomerFIO == model.CustomerFIO)
-                {
-                    throw new Exception("Уже есть клиент с таким ФИО");
-                }
+                throw new Exception("Уже есть клиент с таким ФИО");
             }
+            int maxId = source.Сustomers.Count > 0 ? source.Сustomers.Max(rec => rec.Id) : 0;
             source.Сustomers.Add(new Сustomer
             {
                 Id = maxId + 1,
@@ -72,38 +63,32 @@ namespace CarpenterWorkshopService.ImplementationsList
 
         public void UpdElement(CustomerBidingModel model)
         {
-            int index = -1;
-            for (int i = 0; i < source.Сustomers.Count; ++i)
+            Сustomer element = source.Сustomers.FirstOrDefault(rec => rec.CustomerFIO == model.CustomerFIO && rec.Id != model.Id);
+            if (element != null)
             {
-                if (source.Сustomers[i].Id == model.Id)
-                {
-                    index = i;
-                }
-                if (source.Сustomers[i].CustomerFIO == model.CustomerFIO &&
-                    source.Сustomers[i].Id != model.Id)
-                {
-                    throw new Exception("Уже есть клиент с таким ФИО");
-                }
+                throw new Exception("Уже есть клиент с таким ФИО");
             }
-            if (index == -1)
+            element = source.Сustomers.FirstOrDefault(rec => rec.Id == model.Id);
+            if (element == null)
             {
                 throw new Exception("Элемент не найден");
             }
-            source.Сustomers[index].CustomerFIO = model.CustomerFIO;
+            element.CustomerFIO = model.CustomerFIO;
         }
 
         public void DelElement(int id)
         {
-            for (int i = 0; i < source.Сustomers.Count; ++i)
+            Сustomer element = source.Сustomers.FirstOrDefault(rec => rec.Id == id);
+            if (element != null)
             {
-                if (source.Сustomers[i].Id == id)
-                {
-                    source.Сustomers.RemoveAt(i);
-                    return;
-                }
+                source.Сustomers.Remove(element);
             }
-            throw new Exception("Элемент не найден");
+            else
+            {
+                throw new Exception("Элемент не найден");
+            }
         }
     }
 }
+
 

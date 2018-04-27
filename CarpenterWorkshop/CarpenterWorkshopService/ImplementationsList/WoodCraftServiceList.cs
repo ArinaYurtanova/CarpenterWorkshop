@@ -12,258 +12,178 @@ namespace CarpenterWorkshopService.ImplementationsList
 {
     public class WoodCraftServiceList : IWoodCraftService
     {
-            private DataListSingleton source;
+        private DataListSingleton source;
 
-            public WoodCraftServiceList()
-            {
-                source = DataListSingleton.GetInstance();
-            }
+        public WoodCraftServiceList()
+        {
+            source = DataListSingleton.GetInstance();
+        }
 
-            public List<WoodCraftViewModel> GetList()
-            {
-                List<WoodCraftViewModel> result = new List<WoodCraftViewModel>();
-                for (int i = 0; i < source.WoodCrafts.Count; ++i)
+        public List<WoodCraftViewModel> GetList()
+        {
+            List<WoodCraftViewModel> result = source.WoodCrafts
+                .Select(rec => new WoodCraftViewModel
                 {
-                    // требуется дополнительно получить список компонентов для изделия и их количество
-                    List<BlankCraftViewModel> blankCraft = new List<BlankCraftViewModel>();
-                    for (int j = 0; j < source.BlanksCrafts.Count; ++j)
-                    {
-                        if (source.BlanksCrafts[j].WoodCraftsID == source.WoodCrafts[i].Id)
-                        {
-                            string woodBlanksName = string.Empty;
-                            for (int k = 0; k < source.WoodBlanks.Count; ++k)
+                    Id = rec.Id,
+                    WoodCraftsName = rec.WoodCraftsName,
+                    Price = rec.Price,
+                    BlanksCrafts = source.BlanksCrafts
+                            .Where(recPC => recPC.WoodCraftsID == rec.Id)
+                            .Select(recPC => new BlankCraftViewModel
                             {
-                                if (source.BlanksCrafts[j].WoodBlanksID == source.WoodBlanks[k].Id)
-                                {
-                                    woodBlanksName = source.WoodBlanks[k].WoodBlanksName;
-                                    break;
-                                }
-                            }
-                        blankCraft.Add(new BlankCraftViewModel
-                        {
-                                Id = source.BlanksCrafts[j].Id,
-                                WoodCraftsID = source.BlanksCrafts[j].WoodCraftsID,
-                                WoodBlanksID = source.BlanksCrafts[j].WoodBlanksID,
-                                WoodBlanksName = woodBlanksName,
-                                Count = source.BlanksCrafts[j].Count
-                            });
-                        }
-                    }
-                    result.Add(new WoodCraftViewModel
-                    {
-                        Id = source.WoodCrafts[i].Id,
-                        WoodCraftsName = source.WoodCrafts[i].WoodCraftsName,
-                        Price = source.WoodCrafts[i].Price,
-                        BlanksCrafts = blankCraft
-                    });
-                }
-                return result;
-            }
+                                Id = recPC.Id,
+                                WoodCraftsID = recPC.WoodCraftsID,
+                                WoodBlanksID= recPC.WoodBlanksID,
+                                WoodBlanksName = source.WoodBlanks
+                                    .FirstOrDefault(recC => recC.Id == recPC.WoodBlanksID)?.WoodBlanksName,
+                                Count = recPC.Count
+                            })
+                            .ToList()
+                })
+                .ToList();
+            return result;
+        }
 
-            public WoodCraftViewModel GetElement(int id)
+        public WoodCraftViewModel GetElement(int id)
+        {
+            WoodCraft element = source.WoodCrafts.FirstOrDefault(rec => rec.Id == id);
+            if (element != null)
             {
-                for (int i = 0; i < source.WoodCrafts.Count; ++i)
+                return new WoodCraftViewModel
                 {
-                    // требуется дополнительно получить список компонентов для изделия и их количество
-                    List<BlankCraftViewModel> blankCraft = new List<BlankCraftViewModel>();
-                    for (int j = 0; j < source.BlanksCrafts.Count; ++j)
-                    {
-                        if (source.BlanksCrafts[j].WoodCraftsID == source.WoodCrafts[i].Id)
-                        {
-                            string woodBlanksName = string.Empty;
-                            for (int k = 0; k < source.WoodBlanks.Count; ++k)
+                    Id = element.Id,
+                    WoodCraftsName = element.WoodCraftsName,
+                    Price = element.Price,
+                    BlanksCrafts = source.BlanksCrafts
+                            .Where(recPC => recPC.WoodCraftsID == element.Id)
+                            .Select(recPC => new BlankCraftViewModel
                             {
-                                if (source.BlanksCrafts[j].WoodBlanksID == source.WoodBlanks[k].Id)
-                                {
-                                woodBlanksName = source.WoodBlanks[k].WoodBlanksName;
-                                    break;
-                                }
-                            }
-                        blankCraft.Add(new BlankCraftViewModel
-                        {
-                                Id = source.BlanksCrafts[j].Id,
-                                WoodCraftsID = source.BlanksCrafts[j].WoodCraftsID,
-                                WoodBlanksID = source.BlanksCrafts[j].WoodBlanksID,
-                                WoodBlanksName = woodBlanksName,
-                                Count = source.BlanksCrafts[j].Count
-                            });
-                        }
-                    }
-                    if (source.WoodCrafts[i].Id == id)
-                    {
-                        return new WoodCraftViewModel
-                        {
-                            Id = source.WoodCrafts[i].Id,
-                            WoodCraftsName = source.WoodCrafts[i].WoodCraftsName,
-                            Price = source.WoodCrafts[i].Price,
-                            BlanksCrafts = blankCraft
-                        };
-                    }
-                }
+                                Id = recPC.Id,
+                                WoodCraftsID = recPC.WoodCraftsID,
+                                WoodBlanksID = recPC.WoodBlanksID,
+                                WoodBlanksName = source.WoodBlanks
+                                        .FirstOrDefault(recC => recC.Id == recPC.WoodBlanksID)?.WoodBlanksName,
+                                Count = recPC.Count
+                            })
+                            .ToList()
+                };
+            }
+            throw new Exception("Элемент не найден");
+        }
 
+        public void AddElement(WoodCraftBindingModel model)
+        {
+            WoodCraft element = source.WoodCrafts.FirstOrDefault(rec => rec.WoodCraftsName == model.WoodCraftsName);
+            if (element != null)
+            {
+                throw new Exception("Уже есть изделие с таким названием");
+            }
+            int maxId = source.WoodCrafts.Count > 0 ? source.WoodCrafts.Max(rec => rec.Id) : 0;
+            source.WoodCrafts.Add(new WoodCraft
+            {
+                Id = maxId + 1,
+                WoodCraftsName = model.WoodCraftsName,
+                Price = model.Price
+            });
+            // компоненты для изделия
+            int maxPCId = source.BlanksCrafts.Count > 0 ?
+                                    source.BlanksCrafts.Max(rec => rec.Id) : 0;
+            // убираем дубли по компонентам
+            var groupComponents = model.BlanksCrafts
+                                        .GroupBy(rec => rec.WoodBlanksID)
+                                        .Select(rec => new
+                                        {
+                                            WoodBlanksID = rec.Key,
+                                            Count = rec.Sum(r => r.Count)
+                                        });
+            // добавляем компоненты
+            foreach (var groupComponent in groupComponents)
+            {
+                source.BlanksCrafts.Add(new BlankCraft
+                {
+                    Id = ++maxPCId,
+                    WoodCraftsID = maxId + 1,
+                    WoodBlanksID = groupComponent.WoodBlanksID,
+                    Count = groupComponent.Count
+                });
+            }
+        }
+
+        public void UpdElement(WoodCraftBindingModel model)
+        {
+            WoodCraft element = source.WoodCrafts.FirstOrDefault(rec =>
+                                        rec.WoodCraftsName == model.WoodCraftsName && rec.Id != model.Id);
+            if (element != null)
+            {
+                throw new Exception("Уже есть изделие с таким названием");
+            }
+            element = source.WoodCrafts.FirstOrDefault(rec => rec.Id == model.Id);
+            if (element == null)
+            {
                 throw new Exception("Элемент не найден");
             }
+            element.WoodCraftsName = model.WoodCraftsName;
+            element.Price = model.Price;
 
-            public void AddElement(WoodCraftBindingModel model)
+            int maxPCId = source.BlanksCrafts.Count > 0 ? source.BlanksCrafts.Max(rec => rec.Id) : 0;
+            // обновляем существуюущие компоненты
+            var compIds = model.BlanksCrafts.Select(rec => rec.WoodBlanksID).Distinct();
+            var updateComponents = source.BlanksCrafts
+                                            .Where(rec => rec.WoodCraftsID == model.Id &&
+                                           compIds.Contains(rec.WoodBlanksID));
+            foreach (var updateComponent in updateComponents)
             {
-                int maxId = 0;
-                for (int i = 0; i < source.WoodCrafts.Count; ++i)
+                updateComponent.Count = model.BlanksCrafts
+                                                .FirstOrDefault(rec => rec.Id == updateComponent.Id).Count;
+            }
+            source.BlanksCrafts.RemoveAll(rec => rec.WoodCraftsID == model.Id &&
+                                       !compIds.Contains(rec.WoodBlanksID));
+            // новые записи
+            var groupComponents = model.BlanksCrafts
+                                        .Where(rec => rec.Id == 0)
+                                        .GroupBy(rec => rec.WoodBlanksID)
+                                        .Select(rec => new
+                                        {
+                                            WoodBlanksID = rec.Key,
+                                            Count = rec.Sum(r => r.Count)
+                                        });
+            foreach (var groupComponent in groupComponents)
+            {
+                BlankCraft elementPC = source.BlanksCrafts
+                                        .FirstOrDefault(rec => rec.WoodCraftsID == model.Id &&
+                                                        rec.WoodBlanksID == groupComponent.WoodBlanksID);
+                if (elementPC != null)
                 {
-                    if (source.WoodCrafts[i].Id > maxId)
-                    {
-                        maxId = source.WoodCrafts[i].Id;
-                    }
-                    if (source.WoodCrafts[i].WoodCraftsName == model.WoodCraftsName)
-                    {
-                        throw new Exception("Уже есть изделие с таким названием");
-                    }
+                    elementPC.Count += groupComponent.Count;
                 }
-                source.WoodCrafts.Add(new WoodCraft
-                {
-                    Id = maxId + 1,
-                    WoodCraftsName = model.WoodCraftsName,
-                    Price = model.Price
-                });
-                // компоненты для изделия
-                int maxPCId = 0;
-                for (int i = 0; i < source.BlanksCrafts.Count; ++i)
-                {
-                    if (source.BlanksCrafts[i].Id > maxPCId)
-                    {
-                        maxPCId = source.BlanksCrafts[i].Id;
-                    }
-                }
-                // убираем дубли по компонентам
-                for (int i = 0; i < model.BlanksCrafts.Count; ++i)
-                {
-                    for (int j = 1; j < model.BlanksCrafts.Count; ++j)
-                    {
-                        if (model.BlanksCrafts[i].WoodBlanksID ==
-                            model.BlanksCrafts[j].WoodBlanksID)
-                        {
-                            model.BlanksCrafts[i].Count +=
-                                model.BlanksCrafts[j].Count;
-                            model.BlanksCrafts.RemoveAt(j--);
-                        }
-                    }
-                }
-                // добавляем компоненты
-                for (int i = 0; i < model.BlanksCrafts.Count; ++i)
+                else
                 {
                     source.BlanksCrafts.Add(new BlankCraft
                     {
                         Id = ++maxPCId,
-                        WoodCraftsID = maxId + 1,
-                        WoodBlanksID = model.BlanksCrafts[i].WoodBlanksID,
-                        Count = model.BlanksCrafts[i].Count
+                        WoodCraftsID = model.Id,
+                        WoodBlanksID = groupComponent.WoodBlanksID,
+                        Count = groupComponent.Count
                     });
                 }
             }
+        }
 
-            public void UpdElement(WoodCraftBindingModel model)
-            {
-                int index = -1;
-                for (int i = 0; i < source.WoodCrafts.Count; ++i)
-                {
-                    if (source.WoodCrafts[i].Id == model.Id)
-                    {
-                        index = i;
-                    }
-                    if (source.WoodCrafts[i].WoodCraftsName == model.WoodCraftsName &&
-                        source.WoodCrafts[i].Id != model.Id)
-                    {
-                        throw new Exception("Уже есть изделие с таким названием");
-                    }
-                }
-                if (index == -1)
-                {
-                    throw new Exception("Элемент не найден");
-                }
-                source.WoodCrafts[index].WoodCraftsName = model.WoodCraftsName;
-                source.WoodCrafts[index].Price = model.Price;
-                int maxPCId = 0;
-                for (int i = 0; i < source.BlanksCrafts.Count; ++i)
-                {
-                    if (source.BlanksCrafts[i].Id > maxPCId)
-                    {
-                        maxPCId = source.BlanksCrafts[i].Id;
-                    }
-                }
-                // обновляем существуюущие компоненты
-                for (int i = 0; i < source.BlanksCrafts.Count; ++i)
-                {
-                    if (source.BlanksCrafts[i].WoodCraftsID == model.Id)
-                    {
-                        bool flag = true;
-                        for (int j = 0; j < model.BlanksCrafts.Count; ++j)
-                        {
-                            // если встретили, то изменяем количество
-                            if (source.BlanksCrafts[i].Id == model.BlanksCrafts[j].Id)
-                            {
-                                source.BlanksCrafts[i].Count = model.BlanksCrafts[j].Count;
-                                flag = false;
-                                break;
-                            }
-                        }
-                        // если не встретили, то удаляем
-                        if (flag)
-                        {
-                            source.BlanksCrafts.RemoveAt(i--);
-                        }
-                    }
-                }
-                // новые записи
-                for (int i = 0; i < model.BlanksCrafts.Count; ++i)
-                {
-                    if (model.BlanksCrafts[i].Id == 0)
-                    {
-                        // ищем дубли
-                        for (int j = 0; j < source.BlanksCrafts.Count; ++j)
-                        {
-                            if (source.BlanksCrafts[j].WoodCraftsID == model.Id &&
-                                source.BlanksCrafts[j].WoodBlanksID == model.BlanksCrafts[i].WoodBlanksID)
-                            {
-                                source.BlanksCrafts[j].Count += model.BlanksCrafts[i].Count;
-                                model.BlanksCrafts[i].Id = source.BlanksCrafts[j].Id;
-                                break;
-                            }
-                        }
-                        // если не нашли дубли, то новая запись
-                        if (model.BlanksCrafts[i].Id == 0)
-                        {
-                            source.BlanksCrafts.Add(new BlankCraft
-                            {
-                                Id = ++maxPCId,
-                                WoodCraftsID = model.Id,
-                                WoodBlanksID = model.BlanksCrafts[i].WoodBlanksID,
-                                Count = model.BlanksCrafts[i].Count
-                            });
-                        }
-                    }
-                }
-            }
-
-            public void DelElement(int id)
+        public void DelElement(int id)
+        {
+            WoodCraft element = source.WoodCrafts.FirstOrDefault(rec => rec.Id == id);
+            if (element != null)
             {
                 // удаяем записи по компонентам при удалении изделия
-                for (int i = 0; i < source.BlanksCrafts.Count; ++i)
-                {
-                    if (source.BlanksCrafts[i].WoodCraftsID == id)
-                    {
-                        source.BlanksCrafts.RemoveAt(i--);
-                    }
-                }
-                for (int i = 0; i < source.WoodCrafts.Count; ++i)
-                {
-                    if (source.WoodCrafts[i].Id == id)
-                    {
-                        source.WoodCrafts.RemoveAt(i);
-                        return;
-                    }
-                }
+                source.BlanksCrafts.RemoveAll(rec => rec.WoodCraftsID == id);
+                source.WoodCrafts.Remove(element);
+            }
+            else
+            {
                 throw new Exception("Элемент не найден");
             }
         }
+    }
     
 }
 
