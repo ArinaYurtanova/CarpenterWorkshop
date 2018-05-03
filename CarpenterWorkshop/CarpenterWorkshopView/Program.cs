@@ -37,7 +37,7 @@ namespace CarpenterWorkshopView
             currentContainer.RegisterType<IWoodCraftService, WoodCraftServiceBD>(new HierarchicalLifetimeManager());
             currentContainer.RegisterType<IStorageService, StorageServiceBD>(new HierarchicalLifetimeManager());
             currentContainer.RegisterType<IMainService, MainServiceBD>(new HierarchicalLifetimeManager());
-
+            currentContainer.RegisterType<IReportService, ReportServiceBD>(new HierarchicalLifetimeManager());
             return currentContainer;
         }
     }

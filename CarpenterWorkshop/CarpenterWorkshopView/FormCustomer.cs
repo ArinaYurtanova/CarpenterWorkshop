@@ -1,4 +1,5 @@
-﻿using CarpenterWorkshopService.Intefaces;
+﻿using CarpenterWorkshopService.BindingModels;
+using CarpenterWorkshopService.Intefaces;
 using CarpenterWorkshopService.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -62,7 +63,7 @@ namespace CarpenterWorkshopView
             {
                 if (id.HasValue)
                 {
-                    service.UpdElement(new CustomerBindingModel
+                    service.UpdElement(new CustomerBidingModel
                     {
                         Id = id.Value,
                         CustomerFIO = textBoxFIO.Text
@@ -70,7 +71,7 @@ namespace CarpenterWorkshopView
                 }
                 else
                 {
-                    service.AddElement(new CustomerBindingModel
+                    service.AddElement(new CustomerBidingModel
                     {
                         CustomerFIO = textBoxFIO.Text
                     });
