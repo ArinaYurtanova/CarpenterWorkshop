@@ -126,7 +126,7 @@
             this.Name = "FormPutOnStorage";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Пополнение склада";
-            this.Load += new System.EventHandler(this.FormPutOnStock_Load);
+            this.Load += new System.EventHandler(this.FormPutOnStorage_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

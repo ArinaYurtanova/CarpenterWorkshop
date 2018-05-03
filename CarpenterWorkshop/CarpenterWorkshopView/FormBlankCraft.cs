@@ -16,32 +16,30 @@ namespace CarpenterWorkshopView
 {
     public partial class FormBlankCraft : Form
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
         public BlankCraftViewModel Model { set { model = value; } get { return model; } }
-
-        private readonly IWoodBlankService service;
 
         private BlankCraftViewModel model;
 
-        public FormBlankCraft(IWoodBlankService service)
+        public FormBlankCraft()
         {
             InitializeComponent();
-            this.service = service;
         }
 
-        private void FormProductComponent_Load(object sender, EventArgs e)
+        private void FormBlankCraft_Load(object sender, EventArgs e)
         {
             try
             {
-                List<WoodBlankViewModel> list = service.GetList();
-                if (list != null)
+                var response = APIClient.GetRequest("api/WoodBlank/GetList");
+                if (response.Result.IsSuccessStatusCode)
                 {
                     comboBoxComponent.DisplayMember = "WoodBlanksName";
-                    comboBoxComponent.ValueMember = "Id";
-                    comboBoxComponent.DataSource = list;
+                    comboBoxComponent.ValueMember = "ID";
+                    comboBoxComponent.DataSource = APIClient.GetElement<List<WoodBlankViewModel>>(response);
                     comboBoxComponent.SelectedItem = null;
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)

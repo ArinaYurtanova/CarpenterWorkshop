@@ -35,5 +35,8 @@ namespace CarpenterWorkshopService
         public virtual DbSet<Storage> Storages { get; set; }
 
         public virtual DbSet<StorageBlank> StorageBlanks { get; set; }
+      
+        
     }
 }
+

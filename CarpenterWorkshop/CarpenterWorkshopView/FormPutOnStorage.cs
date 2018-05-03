@@ -17,42 +17,46 @@ namespace CarpenterWorkshopView
 {
     public partial class FormPutOnStorage : Form
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
-        private readonly IStorageService serviceS;
-
-        private readonly IWoodBlankService serviceWB;
-
-        private readonly IMainService serviceM;
-
-        public FormPutOnStorage(IStorageService serviceS, IWoodBlankService serviceWB, IMainService serviceM)
+        public FormPutOnStorage()
         {
             InitializeComponent();
-            this.serviceS = serviceS;
-            this.serviceWB = serviceWB;
-            this.serviceM = serviceM;
         }
 
-        private void FormPutOnStock_Load(object sender, EventArgs e)
+        private void FormPutOnStorage_Load(object sender, EventArgs e)
         {
             try
             {
-                List<WoodBlankViewModel> listC = serviceWB.GetList();
-                if (listC != null)
+                var responseC = APIClient.GetRequest("api/WoodBlank/GetList");
+                if (responseC.Result.IsSuccessStatusCode)
                 {
-                    comboBoxComponent.DisplayMember = "WoodBlanksName";
-                    comboBoxComponent.ValueMember = "Id";
-                    comboBoxComponent.DataSource = listC;
-                    comboBoxComponent.SelectedItem = null;
+                    List<WoodBlankViewModel> list = APIClient.GetElement<List<WoodBlankViewModel>>(responseC);
+                    if (list != null)
+                    {
+                        comboBoxComponent.DisplayMember = "WoodBlanksName";
+                        comboBoxComponent.ValueMember = "ID";
+                        comboBoxComponent.DataSource = list;
+                        comboBoxComponent.SelectedItem = null;
+                    }
                 }
-                List<StorageViewModel> listS = serviceS.GetList();
-                if (listS != null)
+                else
                 {
-                    comboBoxStock.DisplayMember = "StorageName";
-                    comboBoxStock.ValueMember = "Id";
-                    comboBoxStock.DataSource = listS;
-                    comboBoxStock.SelectedItem = null;
+                    throw new Exception(APIClient.GetError(responseC));
+                }
+                var responseS = APIClient.GetRequest("api/Storage/GetList");
+                if (responseS.Result.IsSuccessStatusCode)
+                {
+                    List<StorageViewModel> list = APIClient.GetElement<List<StorageViewModel>>(responseS);
+                    if (list != null)
+                    {
+                        comboBoxStock.DisplayMember = "StorageName";
+                        comboBoxStock.ValueMember = "ID";
+                        comboBoxStock.DataSource = list;
+                        comboBoxStock.SelectedItem = null;
+                    }
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(responseC));
                 }
             }
             catch (Exception ex)
@@ -80,15 +84,22 @@ namespace CarpenterWorkshopView
             }
             try
             {
-                serviceM.PutComponentOnStock(new StorageBlankBindingModel
+                var response = APIClient.PostRequest("api/Main/PutComponentOnStock", new StorageBlankBindingModel
                 {
                     WoodBlanksID = Convert.ToInt32(comboBoxComponent.SelectedValue),
                     StorageID = Convert.ToInt32(comboBoxStock.SelectedValue),
                     Count = Convert.ToInt32(textBoxCount.Text)
                 });
-                MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                DialogResult = DialogResult.OK;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    DialogResult = DialogResult.OK;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {

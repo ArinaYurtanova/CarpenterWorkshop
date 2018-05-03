@@ -128,7 +128,7 @@ namespace CarpenterWorkshopService.ImplementationsList
             element.Status = ReadyProduct.Оплачен;
         }
 
-        public void PutComponentOnStock(StorageBlankBindingModel model)
+        public void  PutComponentOnStock(StorageBlankBindingModel model)
         {
             StorageBlank element = source.StorageBlanks
                                                 .FirstOrDefault(rec => rec.StorageID == model.StorageID &&

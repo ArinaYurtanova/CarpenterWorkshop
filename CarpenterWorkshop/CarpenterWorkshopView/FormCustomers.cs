@@ -1,4 +1,5 @@
-﻿using CarpenterWorkshopService.Intefaces;
+﻿using CarpenterWorkshopService.BindingModels;
+using CarpenterWorkshopService.Intefaces;
 using CarpenterWorkshopService.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -17,28 +18,24 @@ namespace CarpenterWorkshopView
 {
     public partial class FormCustomers : Form
     {
-        
-            [Dependency]
-            public new IUnityContainer Container { get; set; }
+        public FormCustomers()
+        {
+            InitializeComponent();
+        }
 
-            private readonly ICustomerService service;
+        private void FormCustomers_Load(object sender, EventArgs e)
+        {
+            LoadData();
+        }
 
-            public FormCustomers(ICustomerService service)
+        private void LoadData()
+        {
+            try
             {
-                InitializeComponent();
-                this.service = service;
-            }
-
-            private void FormCustomers_Load(object sender, EventArgs e)
-            {
-                LoadData();
-            }
-
-            private void LoadData()
-            {
-                try
+                var response = APIClient.GetRequest("api/Customer/GetList");
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    List<CustomerViewModel> list = service.GetList();
+                    List<CustomerViewModel> list = APIClient.GetElement<List<CustomerViewModel>>(response);
                     if (list != null)
                     {
                         dataGridView.DataSource = list;
@@ -46,58 +43,66 @@ namespace CarpenterWorkshopView
                         dataGridView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                     }
                 }
-                catch (Exception ex)
+                else
                 {
-                    MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
-
-            private void buttonAdd_Click(object sender, EventArgs e)
+            catch (Exception ex)
             {
-                var form = Container.Resolve<FormCustomer>();
+                MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void buttonAdd_Click(object sender, EventArgs e)
+        {
+            var form = new FormCustomer();
+            if (form.ShowDialog() == DialogResult.OK)
+            {
+                LoadData();
+            }
+        }
+
+        private void buttonUpd_Click(object sender, EventArgs e)
+        {
+            if (dataGridView.SelectedRows.Count == 1)
+            {
+                var form = new FormCustomer();
+                form.Id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
                 if (form.ShowDialog() == DialogResult.OK)
                 {
                     LoadData();
                 }
             }
+        }
 
-            private void buttonUpd_Click(object sender, EventArgs e)
+        private void buttonDel_Click(object sender, EventArgs e)
+        {
+            if (dataGridView.SelectedRows.Count == 1)
             {
-                if (dataGridView.SelectedRows.Count == 1)
+                if (MessageBox.Show("Удалить запись", "Вопрос", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
-                    var form = Container.Resolve<FormCustomer>();
-                    form.Id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
-                    if (form.ShowDialog() == DialogResult.OK)
+                    int id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
+                    try
                     {
-                        LoadData();
+                        var response = APIClient.PostRequest("api/Customer/DelElement", new CustomerBidingModel { Id = id });
+                        if (!response.Result.IsSuccessStatusCode)
+                        {
+                            throw new Exception(APIClient.GetError(response));
+                        }
                     }
-                }
-            }
-
-            private void buttonDel_Click(object sender, EventArgs e)
-            {
-                if (dataGridView.SelectedRows.Count == 1)
-                {
-                    if (MessageBox.Show("Удалить запись", "Вопрос", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    catch (Exception ex)
                     {
-                        int id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
-                        try
-                        {
-                            service.DelElement(id);
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
-                        LoadData();
+                        MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
+                    LoadData();
                 }
-            }
-
-            private void buttonRef_Click(object sender, EventArgs e)
-            {
-                LoadData();
             }
         }
-    }
 
+        private void buttonRef_Click(object sender, EventArgs e)
+        {
+            LoadData();
+        }
+    }
+}

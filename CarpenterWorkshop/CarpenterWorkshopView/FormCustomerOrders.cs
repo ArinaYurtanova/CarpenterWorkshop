@@ -1,5 +1,6 @@
 ﻿using CarpenterWorkshopService.BindingModels;
 using CarpenterWorkshopService.Intefaces;
+using CarpenterWorkshopService.ViewModels;
 using Microsoft.Reporting.WinForms;
 using System;
 using System.Collections.Generic;
@@ -16,17 +17,11 @@ using Unity.Attributes;
 
 namespace CarpenterWorkshopView
 {
-   public partial class FormCustomerOrders : Form
+    public partial class FormCustomerOrders : Form
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
-        private readonly IReportService service;
-
-        public FormCustomerOrders(IReportService service)
+        public FormCustomerOrders()
         {
             InitializeComponent();
-            this.service = service;
         }
 
         private void buttonMake_Click(object sender, EventArgs e)
@@ -43,13 +38,21 @@ namespace CarpenterWorkshopView
                                             " по " + dateTimePickerTo.Value.ToShortDateString());
                 reportViewer.LocalReport.SetParameters(parameter);
 
-                var dataSource = service.GetCustomerOrders(new ReportBindingModel
+                var response = APIClient.PostRequest("api/Report/GetClientOrders", new ReportBindingModel
                 {
                     DateFrom = dateTimePickerFrom.Value,
                     DateTo = dateTimePickerTo.Value
                 });
-                ReportDataSource source = new ReportDataSource("DataSetOrders", dataSource);
-                reportViewer.LocalReport.DataSources.Add(source);
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    var dataSource = APIClient.GetElement<List<CustomerOrdersModel>>(response);
+                    ReportDataSource source = new ReportDataSource("DataSetOrders", dataSource);
+                    reportViewer.LocalReport.DataSources.Add(source);
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
 
                 reportViewer.RefreshReport();
             }
@@ -74,13 +77,20 @@ namespace CarpenterWorkshopView
             {
                 try
                 {
-                    service.SaveCustomerOrders(new ReportBindingModel
+                    var response = APIClient.PostRequest("api/Report/SaveClientOrders", new ReportBindingModel
                     {
                         FileName = sfd.FileName,
                         DateFrom = dateTimePickerFrom.Value,
                         DateTo = dateTimePickerTo.Value
                     });
-                    MessageBox.Show("Выполнено", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    if (response.Result.IsSuccessStatusCode)
+                    {
+                        MessageBox.Show("Выполнено", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
+                    }
                 }
                 catch (Exception ex)
                 {
