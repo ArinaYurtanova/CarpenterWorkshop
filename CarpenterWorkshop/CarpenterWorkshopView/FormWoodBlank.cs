@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -17,79 +18,85 @@ namespace CarpenterWorkshopView
 {
     public partial class FormWoodBlank : Form
     {
-            [Dependency]
-            public new IUnityContainer Container { get; set; }
+        public int Id { set { id = value; } }
 
-            public int Id { set { id = value; } }
+        private int? id;
 
-            private readonly IWoodBlankService service;
+        public FormWoodBlank()
+        {
+            InitializeComponent();
+        }
 
-            private int? id;
-
-            public FormWoodBlank(IWoodBlankService service)
+        private void FormComponent_Load(object sender, EventArgs e)
+        {
+            if (id.HasValue)
             {
-                InitializeComponent();
-                this.service = service;
-            }
-
-            private void FormComponent_Load(object sender, EventArgs e)
-            {
-                if (id.HasValue)
-                {
-                    try
-                    {
-                        WoodBlankViewModel view = service.GetElement(id.Value);
-                        if (view != null)
-                        {
-                            textBoxName.Text = view.WoodBlanksName;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-            }
-
-            private void buttonSave_Click(object sender, EventArgs e)
-            {
-                if (string.IsNullOrEmpty(textBoxName.Text))
-                {
-                    MessageBox.Show("Заполните название", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
                 try
                 {
-                    if (id.HasValue)
+                    var response = APIClient.GetRequest("api/WoodBlank/Get/" + id.Value);
+                    if (response.Result.IsSuccessStatusCode)
                     {
-                        service.UpdElement(new WoodBlanksBindingModel
-                        {
-                            Id = id.Value,
-                            WoodBlanksName = textBoxName.Text
-                        });
+                        var component = APIClient.GetElement<WoodBlankViewModel>(response);
+                        textBoxName.Text = component.WoodBlanksName;
                     }
                     else
                     {
-                        service.AddElement(new WoodBlanksBindingModel
-                        {
-                            WoodBlanksName = textBoxName.Text
-                        });
+                        throw new Exception(APIClient.GetError(response));
                     }
-                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    DialogResult = DialogResult.OK;
-                    Close();
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+        }
 
-            private void buttonCancel_Click(object sender, EventArgs e)
+        private void buttonSave_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(textBoxName.Text))
             {
-                DialogResult = DialogResult.Cancel;
-                Close();
+                MessageBox.Show("Заполните название", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            try
+            {
+                Task<HttpResponseMessage> response;
+                if (id.HasValue)
+                {
+                    response = APIClient.PostRequest("api/WoodBlank/UpdElement", new WoodBlanksBindingModel
+                    {
+                        Id = id.Value,
+                        WoodBlanksName = textBoxName.Text
+                    });
+                }
+                else
+                {
+                    response = APIClient.PostRequest("api/WoodBlank/AddElement", new WoodBlanksBindingModel
+                    {
+                        WoodBlanksName = textBoxName.Text
+                    });
+                }
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    DialogResult = DialogResult.OK;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-    }
 
+        private void buttonCancel_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.Cancel;
+            Close();
+        }
+    }
+}

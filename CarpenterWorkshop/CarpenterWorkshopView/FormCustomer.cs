@@ -7,7 +7,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -18,19 +18,13 @@ namespace CarpenterWorkshopView
 {
     public partial class FormCustomer : Form
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
         public int Id { set { id = value; } }
-
-        private readonly ICustomerService service;
 
         private int? id;
 
-        public FormCustomer(ICustomerService service)
+        public FormCustomer()
         {
             InitializeComponent();
-            this.service = service;
         }
 
         private void FormCustomer_Load(object sender, EventArgs e)
@@ -39,10 +33,15 @@ namespace CarpenterWorkshopView
             {
                 try
                 {
-                    CustomerViewModel view = service.GetElement(id.Value);
-                    if (view != null)
+                    var response = APIClient.GetRequest("api/Customer/Get/" + id.Value);
+                    if (response.Result.IsSuccessStatusCode)
                     {
-                        textBoxFIO.Text = view.CustomerFIO;
+                        var customer = APIClient.GetElement<CustomerViewModel>(response);
+                        textBoxFIO.Text = customer.CustomerFIO;
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
                     }
                 }
                 catch (Exception ex)
@@ -61,9 +60,10 @@ namespace CarpenterWorkshopView
             }
             try
             {
+                Task<HttpResponseMessage> response;
                 if (id.HasValue)
                 {
-                    service.UpdElement(new CustomerBidingModel
+                    response = APIClient.PostRequest("api/Customer/UpdElement", new CustomerBidingModel
                     {
                         Id = id.Value,
                         CustomerFIO = textBoxFIO.Text
@@ -71,14 +71,21 @@ namespace CarpenterWorkshopView
                 }
                 else
                 {
-                    service.AddElement(new CustomerBidingModel
+                    response = APIClient.PostRequest("api/Customer/AddElement", new CustomerBidingModel
                     {
                         CustomerFIO = textBoxFIO.Text
                     });
                 }
-                MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                DialogResult = DialogResult.OK;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    DialogResult = DialogResult.OK;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {
