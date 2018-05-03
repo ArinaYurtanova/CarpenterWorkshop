@@ -104,7 +104,7 @@
             this.Name = "FormBlankCraft";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Заготовки";
-            this.Load += new System.EventHandler(this.FormProductComponent_Load);
+            this.Load += new System.EventHandler(this.FormBlankCraft_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -102,7 +102,7 @@
             this.Name = "FormStorages";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Хранилища";
-            this.Load += new System.EventHandler(this.FormStocks_Load);
+            this.Load += new System.EventHandler(this.FormStorages_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).EndInit();
             this.ResumeLayout(false);
 
