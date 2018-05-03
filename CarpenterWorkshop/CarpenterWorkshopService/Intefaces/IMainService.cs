@@ -20,6 +20,6 @@ namespace CarpenterWorkshopService.Intefaces
 
         void PayOrder(int id);
 
-        void PutComponentOnStock(StorageBlankBindingModel model);
+        void  PutComponentOnStock(StorageBlankBindingModel model);
     }
 }

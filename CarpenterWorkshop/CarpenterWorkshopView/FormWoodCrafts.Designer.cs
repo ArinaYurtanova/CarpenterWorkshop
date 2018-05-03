@@ -102,7 +102,7 @@
             this.Name = "FormWoodCrafts";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Деревянная утварь";
-            this.Load += new System.EventHandler(this.FormProducts_Load);
+            this.Load += new System.EventHandler(this.FormWoodCrafts_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).EndInit();
             this.ResumeLayout(false);
 
