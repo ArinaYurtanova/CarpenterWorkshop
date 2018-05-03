@@ -36,6 +36,19 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
+    <Reference Include="itextsharp, Version=5.5.13.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
+      <HintPath>..\packages\iTextSharp.5.5.13\lib\itextsharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <HintPath>..\packages\Microsoft.Office.Interop.Excel.15.0.4795.1000\lib\net20\Microsoft.Office.Interop.Excel.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Office.Interop.Word, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <HintPath>..\packages\Microsoft.Office.Interop.Word.15.0.4797.1003\lib\net20\Microsoft.Office.Interop.Word.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
@@ -51,12 +64,14 @@
     <Compile Include="BindingModels\BlankCraftBindingModel.cs" />
     <Compile Include="BindingModels\CustomerBindingModel.cs" />
     <Compile Include="BindingModels\OrdProductBindingModel.cs" />
+    <Compile Include="BindingModels\ReportBindingModel.cs" />
     <Compile Include="BindingModels\StorageBindingModel.cs" />
     <Compile Include="BindingModels\StorageBlankBindingModel.cs" />
     <Compile Include="BindingModels\WoodBlankBindingModel .cs" />
     <Compile Include="BindingModels\WoodCraftBindingModel.cs" />
     <Compile Include="BindingModels\WorkerBindingModel.cs" />
     <Compile Include="DataListSingleton.cs" />
+    <Compile Include="ImplementationsBD\ReportServiceBD.cs" />
     <Compile Include="ImplementationsBD\CustomerServiceBD.cs" />
     <Compile Include="ImplementationsBD\MainServiceBD.cs" />
     <Compile Include="ImplementationsBD\StorageServiceBD.cs" />
@@ -71,20 +86,27 @@
     <Compile Include="ImplementationsList\CustomerServiceList.cs" />
     <Compile Include="Intefaces\ICustomerService.cs" />
     <Compile Include="Intefaces\IMainService.cs" />
+    <Compile Include="Intefaces\IReportService.cs" />
     <Compile Include="Intefaces\IStorageService.cs" />
     <Compile Include="Intefaces\IWorkerService.cs" />
     <Compile Include="Intefaces\IWoodBlankService.cs" />
     <Compile Include="Intefaces\IWoodCraftService.cs" />
-    <Compile Include="Migrations\201804211339433_FirstMigration.cs" />
-    <Compile Include="Migrations\201804211339433_FirstMigration.Designer.cs">
-      <DependentUpon>201804211339433_FirstMigration.cs</DependentUpon>
+    <Compile Include="Migrations\201803100855140_FirstMigration.cs" />
+    <Compile Include="Migrations\201803100855140_FirstMigration.Designer.cs">
+      <DependentUpon>201803100855140_FirstMigration.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="ViewModels\BlankCraftViewModel.cs" />
+    <Compile Include="ViewModels\CustomerOrdersModel.cs" />
     <Compile Include="ViewModels\CustomerViewModel.cs" />
     <Compile Include="ViewModels\OrdProductViewModel.cs" />
     <Compile Include="ViewModels\StorageBlankViewModel.cs" />
+    <Compile Include="ViewModels\StoragesLoadViewModel.cs" />
     <Compile Include="ViewModels\StorageViewModel.cs" />
     <Compile Include="ViewModels\WoodBlankViewModel.cs" />
     <Compile Include="ViewModels\WoodCraftViewModel.cs" />
@@ -99,10 +121,15 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <None Include="Resources\TIMCYR.TTF" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201804211339433_FirstMigration.resx">
-      <DependentUpon>201804211339433_FirstMigration.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201803100855140_FirstMigration.resx">
+      <DependentUpon>201803100855140_FirstMigration.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
