@@ -13,5 +13,7 @@ namespace CarpenterWorkshop
         public int StorageID { get; set; } 
         public int WoodBlanksID { get; set; }
         public int Count { get; set; }
+        public virtual Storage Storage { get; set; }
+        public virtual WoodBlank WoodBlank { get; set; }
     }
 }
