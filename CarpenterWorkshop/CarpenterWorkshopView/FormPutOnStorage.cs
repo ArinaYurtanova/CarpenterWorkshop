@@ -26,30 +26,41 @@ namespace CarpenterWorkshopView
         {
             try
             {
-                List<WoodBlankViewModel> listC = Task.Run(() => APIClient.GetRequestData<List<WoodBlankViewModel>>("api/WoodBlank/GetList")).Result;
-                if (listC != null)
+                var responseC = APIClient.GetRequest("api/WoodBlank/GetList");
+                if (responseC.Result.IsSuccessStatusCode)
                 {
-                    comboBoxComponent.DisplayMember = "WoodBlanksName";
-                    comboBoxComponent.ValueMember = "Id";
-                    comboBoxComponent.DataSource = listC;
-                    comboBoxComponent.SelectedItem = null;
+                    List<WoodBlankViewModel> list = APIClient.GetElement<List<WoodBlankViewModel>>(responseC);
+                    if (list != null)
+                    {
+                        comboBoxComponent.DisplayMember = "WoodBlanksName";
+                        comboBoxComponent.ValueMember = "ID";
+                        comboBoxComponent.DataSource = list;
+                        comboBoxComponent.SelectedItem = null;
+                    }
                 }
-
-                List<StorageViewModel> listS = Task.Run(() => APIClient.GetRequestData<List<StorageViewModel>>("api/Storage/GetList")).Result;
-                if (listS != null)
+                else
                 {
-                    comboBoxStock.DisplayMember = "StorageName";
-                    comboBoxStock.ValueMember = "Id";
-                    comboBoxStock.DataSource = listS;
-                    comboBoxStock.SelectedItem = null;
+                    throw new Exception(APIClient.GetError(responseC));
+                }
+                var responseS = APIClient.GetRequest("api/Storage/GetList");
+                if (responseS.Result.IsSuccessStatusCode)
+                {
+                    List<StorageViewModel> list = APIClient.GetElement<List<StorageViewModel>>(responseS);
+                    if (list != null)
+                    {
+                        comboBoxStock.DisplayMember = "StorageName";
+                        comboBoxStock.ValueMember = "ID";
+                        comboBoxStock.DataSource = list;
+                        comboBoxStock.SelectedItem = null;
+                    }
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(responseC));
                 }
             }
             catch (Exception ex)
             {
-                while (ex.InnerException != null)
-                {
-                    ex = ex.InnerException;
-                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -73,42 +84,32 @@ namespace CarpenterWorkshopView
             }
             try
             {
-                int componentId = Convert.ToInt32(comboBoxComponent.SelectedValue);
-                int storageId = Convert.ToInt32(comboBoxStock.SelectedValue);
-                int count = Convert.ToInt32(textBoxCount.Text);
-                Task task = Task.Run(() => APIClient.PostRequestData("api/Main/PutComponentOnStock", new StorageBlankBindingModel
+                var response = APIClient.PostRequest("api/Main/PutComponentOnStock", new StorageBlankBindingModel
                 {
-                    WoodBlanksID = componentId,
-                    StorageID = storageId,
-                    Count = count
-                }));
-
-                task.ContinueWith((prevTask) => MessageBox.Show("Склад пополнен", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information),
-                    TaskContinuationOptions.OnlyOnRanToCompletion);
-                task.ContinueWith((prevTask) =>
+                    WoodBlanksID = Convert.ToInt32(comboBoxComponent.SelectedValue),
+                    StorageID = Convert.ToInt32(comboBoxStock.SelectedValue),
+                    Count = Convert.ToInt32(textBoxCount.Text)
+                });
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    var ex = (Exception)prevTask.Exception;
-                    while (ex.InnerException != null)
-                    {
-                        ex = ex.InnerException;
-                    }
-                    MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }, TaskContinuationOptions.OnlyOnFaulted);
-
-                Close();
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    DialogResult = DialogResult.OK;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {
-                while (ex.InnerException != null)
-                {
-                    ex = ex.InnerException;
-                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void buttonCancel_Click(object sender, EventArgs e)
         {
+            DialogResult = DialogResult.Cancel;
             Close();
         }
     }

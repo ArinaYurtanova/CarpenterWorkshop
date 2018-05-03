@@ -82,7 +82,7 @@
             this.Name = "FormWoodBlank";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Заготовки";
-            this.Load += new System.EventHandler(this.FormWoodBlank_Load);
+            this.Load += new System.EventHandler(this.FormComponent_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

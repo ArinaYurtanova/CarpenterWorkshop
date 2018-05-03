@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -22,56 +21,24 @@ namespace CarpenterWorkshopView
                 new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        private static async Task<HttpResponseMessage> GetRequest(string requestUrl)
+        public static Task<HttpResponseMessage> GetRequest(string requestUrl)
         {
-            return await client.GetAsync(requestUrl);
+            return client.GetAsync(requestUrl);
         }
 
-        private static async Task<HttpResponseMessage> PostRequest<T>(string requestUrl, T model)
+        public static Task<HttpResponseMessage> PostRequest<T>(string requestUrl, T model)
         {
-            return await client.PostAsJsonAsync(requestUrl, model);
+            return client.PostAsJsonAsync(requestUrl, model);
         }
 
-        public static async Task<T> GetRequestData<T>(string requestUrl)
+        public static T GetElement<T>(Task<HttpResponseMessage> response)
         {
-            HttpResponseMessage response = Task.Run(() => GetRequest(requestUrl)).Result;
-            if (response.IsSuccessStatusCode)
-            {
-                return await response.Content.ReadAsAsync<T>();
-            }
-            else
-            {
-                string error = response.Content.ReadAsStringAsync().Result;
-                throw new Exception(error);
-            }
+            return response.Result.Content.ReadAsAsync<T>().Result;
         }
 
-        public static void PostRequestData<T>(string requestUrl, T model)
+        public static string GetError(Task<HttpResponseMessage> response)
         {
-            HttpResponseMessage response = Task.Run(() => PostRequest(requestUrl, model)).Result;
-            if (!response.IsSuccessStatusCode)
-            {
-                string error = response.Content.ReadAsStringAsync().Result;
-                var errorMessage = JsonConvert.DeserializeObject<HttpErrorMessage>(error);
-                throw new Exception(errorMessage.Message + " " + (errorMessage.MessageDetail ?? "") +
-                    " " + (errorMessage.ExceptionMessage ?? ""));
-            }
-        }
-
-        public static async Task<U> PostRequestData<T, U>(string requestUrl, T model)
-        {
-            HttpResponseMessage response = Task.Run(() => PostRequest(requestUrl, model)).Result;
-            if (response.IsSuccessStatusCode)
-            {
-                return await response.Content.ReadAsAsync<U>();
-            }
-            else
-            {
-                string error = response.Content.ReadAsStringAsync().Result;
-                var errorMessage = JsonConvert.DeserializeObject<HttpErrorMessage>(error);
-                throw new Exception(errorMessage.Message + " " + errorMessage.MessageDetail ?? "" +
-                    " " + errorMessage.ExceptionMessage ?? "");
-            }
+            return response.Result.Content.ReadAsStringAsync().Result;
         }
     }
 }

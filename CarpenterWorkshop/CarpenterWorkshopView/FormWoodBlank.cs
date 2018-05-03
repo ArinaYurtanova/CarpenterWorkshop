@@ -27,21 +27,25 @@ namespace CarpenterWorkshopView
             InitializeComponent();
         }
 
-        private void FormWoodBlank_Load(object sender, EventArgs e)
+        private void FormComponent_Load(object sender, EventArgs e)
         {
             if (id.HasValue)
             {
                 try
                 {
-                    var woodBlank = Task.Run(() => APIClient.GetRequestData<WoodBlankViewModel>("api/WoodBlank/Get/" + id.Value)).Result;
-                    textBoxName.Text = woodBlank.WoodBlanksName;
+                    var response = APIClient.GetRequest("api/WoodBlank/Get/" + id.Value);
+                    if (response.Result.IsSuccessStatusCode)
+                    {
+                        var component = APIClient.GetElement<WoodBlankViewModel>(response);
+                        textBoxName.Text = component.WoodBlanksName;
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
+                    }
                 }
                 catch (Exception ex)
                 {
-                    while (ex.InnerException != null)
-                    {
-                        ex = ex.InnerException;
-                    }
                     MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
@@ -54,41 +58,44 @@ namespace CarpenterWorkshopView
                 MessageBox.Show("Заполните название", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            string name = textBoxName.Text;
-            Task task;
-            if (id.HasValue)
+            try
             {
-                task = Task.Run(() => APIClient.PostRequestData("api/WoodBlank/UpdElement", new WoodBlanksBindingModel
+                Task<HttpResponseMessage> response;
+                if (id.HasValue)
                 {
-                    Id = id.Value,
-                    WoodBlanksName = name
-                }));
-            }
-            else
-            {
-                task = Task.Run(() => APIClient.PostRequestData("api/WoodBlank/AddElement", new WoodBlanksBindingModel
-                {
-                    WoodBlanksName = name
-                }));
-            }
-
-            task.ContinueWith((prevTask) => MessageBox.Show("Сохранение прошло успешно. Обновите список", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information),
-                TaskContinuationOptions.OnlyOnRanToCompletion);
-            task.ContinueWith((prevTask) =>
-            {
-                var ex = (Exception)prevTask.Exception;
-                while (ex.InnerException != null)
-                {
-                    ex = ex.InnerException;
+                    response = APIClient.PostRequest("api/WoodBlank/UpdElement", new WoodBlanksBindingModel
+                    {
+                        Id = id.Value,
+                        WoodBlanksName = textBoxName.Text
+                    });
                 }
+                else
+                {
+                    response = APIClient.PostRequest("api/WoodBlank/AddElement", new WoodBlanksBindingModel
+                    {
+                        WoodBlanksName = textBoxName.Text
+                    });
+                }
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    DialogResult = DialogResult.OK;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
+            }
+            catch (Exception ex)
+            {
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }, TaskContinuationOptions.OnlyOnFaulted);
-
-            Close();
+            }
         }
 
         private void buttonCancel_Click(object sender, EventArgs e)
         {
+            DialogResult = DialogResult.Cancel;
             Close();
         }
     }

@@ -31,20 +31,24 @@ namespace CarpenterWorkshopView
         {
             try
             {
-                List<WoodCraftViewModel> list = Task.Run(() => APIClient.GetRequestData<List<WoodCraftViewModel>>("api/WoodCraft/GetList")).Result;
-                if (list != null)
+                var response = APIClient.GetRequest("api/WoodCraft/GetList");
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    dataGridView.DataSource = list;
-                    dataGridView.Columns[0].Visible = false;
-                    dataGridView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                    List<WoodCraftViewModel> list = APIClient.GetElement<List<WoodCraftViewModel>>(response);
+                    if (list != null)
+                    {
+                        dataGridView.DataSource = list;
+                        dataGridView.Columns[0].Visible = false;
+                        dataGridView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                    }
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)
             {
-                while (ex.InnerException != null)
-                {
-                    ex = ex.InnerException;
-                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -52,18 +56,22 @@ namespace CarpenterWorkshopView
         private void buttonAdd_Click(object sender, EventArgs e)
         {
             var form = new FormWoodCraft();
-            form.ShowDialog();
+            if (form.ShowDialog() == DialogResult.OK)
+            {
+                LoadData();
+            }
         }
 
         private void buttonUpd_Click(object sender, EventArgs e)
         {
             if (dataGridView.SelectedRows.Count == 1)
             {
-                var form = new FormWoodCraft
+                var form = new FormWoodCraft();
+                form.Id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
+                if (form.ShowDialog() == DialogResult.OK)
                 {
-                    Id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value)
-                };
-                form.ShowDialog();
+                    LoadData();
+                }
             }
         }
 
@@ -74,21 +82,19 @@ namespace CarpenterWorkshopView
                 if (MessageBox.Show("Удалить запись", "Вопрос", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     int id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
-
-                    Task task = Task.Run(() => APIClient.PostRequestData("api/WoodCraft/DelElement", new CustomerBidingModel { Id = id }));
-
-                    task.ContinueWith((prevTask) => MessageBox.Show("Запись удалена. Обновите список", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information),
-                    TaskContinuationOptions.OnlyOnRanToCompletion);
-
-                    task.ContinueWith((prevTask) =>
+                    try
                     {
-                        var ex = (Exception)prevTask.Exception;
-                        while (ex.InnerException != null)
+                        var response = APIClient.PostRequest("api/WoodCraft/DelElement", new CustomerBidingModel { Id = id });
+                        if (!response.Result.IsSuccessStatusCode)
                         {
-                            ex = ex.InnerException;
+                            throw new Exception(APIClient.GetError(response));
                         }
+                    }
+                    catch (Exception ex)
+                    {
                         MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }, TaskContinuationOptions.OnlyOnFaulted);
+                    }
+                    LoadData();
                 }
             }
         }

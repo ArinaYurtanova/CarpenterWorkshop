@@ -74,7 +74,6 @@
     <Reference Include="System.Net.Http.Formatting, Version=5.2.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.4\lib\net45\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
-    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -210,7 +209,6 @@
     <Compile Include="FormWorkers.Designer.cs">
       <DependentUpon>FormWorkers.cs</DependentUpon>
     </Compile>
-    <Compile Include="HttpErrorMessage.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlServerTypes\Loader.cs" />
@@ -285,10 +283,6 @@
     <ProjectReference Include="..\CarpenterWorkshopService\CarpenterWorkshopService.csproj">
       <Project>{A99698C9-19F3-4CBF-9E32-C1CC586ACBE5}</Project>
       <Name>CarpenterWorkshopService</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CarpenterWorkshop\CarpenterWorkshopModel.csproj">
-      <Project>{4E974F8C-24D5-40F9-A641-7572B129ED98}</Project>
-      <Name>CarpenterWorkshopModel</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
