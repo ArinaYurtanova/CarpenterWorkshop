@@ -17,22 +17,13 @@ namespace CarpenterWorkshopView
 {
     public partial class FormTakeOrderInWork : Form
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
         public int Id { set { id = value; } }
-
-        private readonly IWorkerService serviceI;
-
-        private readonly IMainService serviceM;
 
         private int? id;
 
-        public FormTakeOrderInWork(IWorkerService serviceI, IMainService serviceM)
+        public FormTakeOrderInWork()
         {
             InitializeComponent();
-            this.serviceI = serviceI;
-            this.serviceM = serviceM;
         }
 
         private void FormTakeOrderInWork_Load(object sender, EventArgs e)
@@ -44,13 +35,21 @@ namespace CarpenterWorkshopView
                     MessageBox.Show("Не указан заказ", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     Close();
                 }
-                List<WorkerVeiwModel> listI = serviceI.GetList();
-                if (listI != null)
+                var response = APIClient.GetRequest("api/Worker/GetList");
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    comboBoxImplementer.DisplayMember = "WorkerFIO";
-                    comboBoxImplementer.ValueMember = "Id";
-                    comboBoxImplementer.DataSource = listI;
-                    comboBoxImplementer.SelectedItem = null;
+                    List<WorkerVeiwModel> list = APIClient.GetElement<List<WorkerVeiwModel>>(response);
+                    if (list != null)
+                    {
+                        comboBoxImplementer.DisplayMember = "WorkerFIO";
+                        comboBoxImplementer.ValueMember = "ID";
+                        comboBoxImplementer.DataSource = list;
+                        comboBoxImplementer.SelectedItem = null;
+                    }
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)
@@ -68,14 +67,21 @@ namespace CarpenterWorkshopView
             }
             try
             {
-                serviceM.TakeOrderInWork(new OrdProductBindingModel
+                var response = APIClient.PostRequest("api/Main/TakeOrderInWork", new OrdProductBindingModel
                 {
                     Id = id.Value,
                     WorkerID = Convert.ToInt32(comboBoxImplementer.SelectedValue)
                 });
-                MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                DialogResult = DialogResult.OK;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    DialogResult = DialogResult.OK;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {

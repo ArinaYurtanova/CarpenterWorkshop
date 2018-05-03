@@ -102,7 +102,7 @@
             this.Name = "FormWorkers";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Работники";
-            this.Load += new System.EventHandler(this.FormImplementers_Load);
+            this.Load += new System.EventHandler(this.FormWorkers_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).EndInit();
             this.ResumeLayout(false);
 

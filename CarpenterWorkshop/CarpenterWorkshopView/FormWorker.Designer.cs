@@ -82,7 +82,7 @@
             this.Name = "FormWorker";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Работник";
-            this.Load += new System.EventHandler(this.FormImplementer_Load);
+            this.Load += new System.EventHandler(this.FormWorker_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
