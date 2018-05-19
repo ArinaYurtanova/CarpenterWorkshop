@@ -1,0 +1,30 @@
+﻿<Window x:Class="CarpenterWorkshopWPF.FormMain"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CarpenterWorkshopWPF"
+        mc:Ignorable="d"
+      Title="Мастерская" Height="340" Width="1081.5" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+    <Grid>
+        <Menu x:Name="menu" HorizontalAlignment="Left" Height="22" VerticalAlignment="Top" Width="1047" Margin="10,0,0,0">
+            <MenuItem Header="Справочники" Height="22" Width="105">
+                <MenuItem Header="Получатели" HorizontalAlignment="Left" Height="28" Width="135" Margin="0,0,-21,0" Click="получателиToolStripMenuItem_Click"/>
+                <MenuItem Header="Заготовки" HorizontalAlignment="Left" Height="24" Width="158" Margin="0,0,-18,0" Click="заготовкиToolStripMenuItem_Click"/>
+                <MenuItem Header="изделие" HorizontalAlignment="Left" Height="28" Width="135" Margin="0,0,-21,0" Click="изделиеToolStripMenuItem_Click"/>
+                <MenuItem Header="Склады" HorizontalAlignment="Left" Height="28" Width="135" Margin="0,0,-21,0" Click="базыToolStripMenuItem_Click"/>
+                <MenuItem Header="Рабочие" HorizontalAlignment="Left" Height="28" Width="161" Margin="0,0,-21,0" Click="рабочиеToolStripMenuItem_Click"/>
+
+            </MenuItem>
+            <MenuItem Header="Пополнить склад" Height="22" Width="135" Click="пополнитьСкладToolStripMenuItem_Click"/>
+        </Menu>
+        <DataGrid x:Name="dataGridViewMain" HorizontalAlignment="Left" Height="272" Margin="0,27,0,0" VerticalAlignment="Top" Width="880" IsReadOnly="True"/>
+        <Button x:Name="buttonCreateOrder" Content="Создать заявку" HorizontalAlignment="Left" Margin="909,48,0,0" VerticalAlignment="Top" Width="138" Height="28" Click="buttonCreateOrder_Click"/>
+        <Button x:Name="buttonTakeOrderInWork" Content="Отдать на выполнение" HorizontalAlignment="Left" Margin="909,100,0,0" VerticalAlignment="Top" Width="138" Height="28" Click="buttonTakeOrderInWork_Click"/>
+        <Button x:Name="buttonZayavkaReady" Content="Заявка готова" HorizontalAlignment="Left" Margin="909,154,0,0" VerticalAlignment="Top" Width="138" Height="28" Click="buttonZayavkaReady_Click"/>
+        <Button x:Name="buttonPayZayavka" Content="Заявка оплачена" HorizontalAlignment="Left" Margin="909,202,0,0" VerticalAlignment="Top" Width="138" Height="28" Click="buttonPayZayavka_Click"/>
+
+        <Button x:Name="buttonRef" Content="Обновить список" HorizontalAlignment="Left" Margin="909,254,0,0" VerticalAlignment="Top" Width="138" Height="28" Click="buttonRef_Click"/>
+
+    </Grid>
+</Window>

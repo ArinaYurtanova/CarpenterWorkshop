@@ -1,14 +1,17 @@
-﻿using CarpenterWorkshopService.Intefaces;
-using CarpenterWorkshopService.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
+using System.Windows;
+using System.Windows.Controls;
+using CarpenterWorkshopService.Intefaces;
+using CarpenterWorkshopService.ViewModels;
 using Unity;
 using Unity.Attributes;
-
-namespace CarpenterWorkshopView
+namespace CarpenterWorkshopWPF
 {
-    public partial class FormStorages : Form
+    /// <summary>
+    /// Логика взаимодействия для FormStorages.xaml
+    /// </summary>
+    public partial class FormStorages : Window
     {
         [Dependency]
         public new IUnityContainer Container { get; set; }
@@ -18,10 +21,11 @@ namespace CarpenterWorkshopView
         public FormStorages(IStorageService service)
         {
             InitializeComponent();
+            Loaded += FormStorages_Load;
             this.service = service;
         }
 
-        private void FormStocks_Load(object sender, EventArgs e)
+        private void FormStorages_Load(object sender, EventArgs e)
         {
             LoadData();
         }
@@ -33,33 +37,31 @@ namespace CarpenterWorkshopView
                 List<StorageViewModel> list = service.GetList();
                 if (list != null)
                 {
-                    dataGridView.DataSource = list;
-                    dataGridView.Columns[0].Visible = false;
-                    dataGridView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                    dataGridViewStorages.ItemsSource = list;
+                    dataGridViewStorages.Columns[0].Visibility = Visibility.Hidden;
+                    dataGridViewStorages.Columns[1].Width = DataGridLength.Auto;
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void buttonAdd_Click(object sender, EventArgs e)
         {
             var form = Container.Resolve<FormStorage>();
-            if (form.ShowDialog() == DialogResult.OK)
-            {
+            if (form.ShowDialog() == true)
                 LoadData();
-            }
         }
 
         private void buttonUpd_Click(object sender, EventArgs e)
         {
-            if (dataGridView.SelectedRows.Count == 1)
+            if (dataGridViewStorages.SelectedItem != null)
             {
                 var form = Container.Resolve<FormStorage>();
-                form.Id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
-                if (form.ShowDialog() == DialogResult.OK)
+                form.Id = ((StorageViewModel)dataGridViewStorages.SelectedItem).Id;
+                if (form.ShowDialog() == true)
                 {
                     LoadData();
                 }
@@ -68,18 +70,19 @@ namespace CarpenterWorkshopView
 
         private void buttonDel_Click(object sender, EventArgs e)
         {
-            if (dataGridView.SelectedRows.Count == 1)
+            if (dataGridViewStorages.SelectedItem != null)
             {
-                if (MessageBox.Show("Удалить запись", "Вопрос", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (MessageBox.Show("Удалить запись?", "Внимание",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
-                    int id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
+                    int id = ((StorageViewModel)dataGridViewStorages.SelectedItem).Id;
                     try
                     {
                         service.DelElement(id);
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                     LoadData();
                 }

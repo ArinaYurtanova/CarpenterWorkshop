@@ -2,13 +2,16 @@
 using CarpenterWorkshopService.Intefaces;
 using CarpenterWorkshopService.ViewModels;
 using System;
-using System.Windows.Forms;
+using System.Windows;
+using System.Windows.Controls;
 using Unity;
 using Unity.Attributes;
-
-namespace CarpenterWorkshopView
+namespace CarpenterWorkshopWPF
 {
-    public partial class FormStorage : Form
+    /// <summary>
+    /// Логика взаимодействия для FormStorage.xaml
+    /// </summary>
+    public partial class FormStorage : Window
     {
         [Dependency]
         public new IUnityContainer Container { get; set; }
@@ -22,10 +25,11 @@ namespace CarpenterWorkshopView
         public FormStorage(IStorageService service)
         {
             InitializeComponent();
+            Loaded += FormStorage_Load;
             this.service = service;
         }
 
-        private void FormStock_Load(object sender, EventArgs e)
+        private void FormStorage_Load(object sender, EventArgs e)
         {
             if (id.HasValue)
             {
@@ -35,16 +39,16 @@ namespace CarpenterWorkshopView
                     if (view != null)
                     {
                         textBoxName.Text = view.StorageName;
-                        dataGridView.DataSource = view.StorageBlanks;
-                        dataGridView.Columns[0].Visible = false;
-                        dataGridView.Columns[1].Visible = false;
-                        dataGridView.Columns[2].Visible = false;
-                        dataGridView.Columns[3].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                        dataGridViewStorage.ItemsSource = view.StorageBlanks;
+                        dataGridViewStorage.Columns[0].Visibility = Visibility.Hidden;
+                        dataGridViewStorage.Columns[1].Visibility = Visibility.Hidden;
+                        dataGridViewStorage.Columns[2].Visibility = Visibility.Hidden;
+                        dataGridViewStorage.Columns[3].Width = DataGridLength.Auto;
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -53,7 +57,7 @@ namespace CarpenterWorkshopView
         {
             if (string.IsNullOrEmpty(textBoxName.Text))
             {
-                MessageBox.Show("Заполните название", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Заполните название", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
             try
@@ -73,19 +77,19 @@ namespace CarpenterWorkshopView
                         StorageName = textBoxName.Text
                     });
                 }
-                MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                DialogResult = DialogResult.OK;
+                MessageBox.Show("Сохранение прошло успешно", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogResult = true;
                 Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void buttonCancel_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
+            DialogResult = false;
             Close();
         }
     }
