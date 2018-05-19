@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Data.Entity;
 using System.Windows;
+using CarpenterWorkshopService;
+using CarpenterWorkshopService.CarpenterWorkshopService;
+using CarpenterWorkshopService.ImplementationsBD;
 using CarpenterWorkshopService.ImplementationsList;
 using CarpenterWorkshopService.Intefaces;
 using Unity;
@@ -27,6 +30,7 @@ namespace CarpenterWorkshopWPF
             //application.InitializeComponent();
             application.Run(container.Resolve<FormMain>());
             //App app = new App();
+
             //app.Run(container.Resolve<FormMain>());
         }
 
@@ -34,12 +38,14 @@ namespace CarpenterWorkshopWPF
         {
             var currentContainer = new UnityContainer();
 
-            currentContainer.RegisterType<ICustomerService, CustomerServiceList>(new HierarchicalLifetimeManager());
-            currentContainer.RegisterType<IWoodBlankService, WoodBlankServiceList>(new HierarchicalLifetimeManager());
-            currentContainer.RegisterType<IWorkerService, WorkerServiceList>(new HierarchicalLifetimeManager());
-            currentContainer.RegisterType<IWoodCraftService, WoodCraftServiceList>(new HierarchicalLifetimeManager());
-            currentContainer.RegisterType<IStorageService, StorageServiceList>(new HierarchicalLifetimeManager());
-            currentContainer.RegisterType<IMainService, MainServiceList>(new HierarchicalLifetimeManager());
+
+            currentContainer.RegisterType<DbContext, AbstractDbContext>(new HierarchicalLifetimeManager());
+            currentContainer.RegisterType<ICustomerService, CustomerServiceBD>(new HierarchicalLifetimeManager());
+            currentContainer.RegisterType<IWoodBlankService, WoodBlankServiceBD>(new HierarchicalLifetimeManager());
+            currentContainer.RegisterType<IWorkerService, WorkerServiceBD>(new HierarchicalLifetimeManager());
+            currentContainer.RegisterType<IWoodCraftService, WoodCraftServiceBD>(new HierarchicalLifetimeManager());
+            currentContainer.RegisterType<IStorageService, StorageServiceBD>(new HierarchicalLifetimeManager());
+            currentContainer.RegisterType<IMainService, MainServiceBD>(new HierarchicalLifetimeManager());
             return currentContainer;
         }
     }

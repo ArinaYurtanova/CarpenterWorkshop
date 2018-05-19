@@ -9,9 +9,9 @@ using Unity.Attributes;
 namespace CarpenterWorkshopWPF
 {
     /// <summary>
-    /// Логика взаимодействия для FormPutOnBaza.xaml
+    /// Логика взаимодействия для FormPutOnStorage.xaml
     /// </summary>
-    public partial class FormPutOnBaza : Window
+    public partial class FormPutOnStorage : Window
     {
         [Dependency]
         public new IUnityContainer Container { get; set; }
@@ -22,16 +22,16 @@ namespace CarpenterWorkshopWPF
 
         private readonly IMainService serviceG;
 
-        public FormPutOnBaza(IStorageService serviceB, IWoodBlankService serviceZ, IMainService serviceG)
+        public FormPutOnStorage(IStorageService serviceB, IWoodBlankService serviceZ, IMainService serviceG)
         {
             InitializeComponent();
-            Loaded += FormPutOnBaza_Load;
+            Loaded += FormPutOnStorage_Load;
             this.serviceB = serviceB;
             this.serviceZ = serviceZ;
             this.serviceG = serviceG;
         }
 
-        private void FormPutOnBaza_Load(object sender, EventArgs e)
+        private void FormPutOnStorage_Load(object sender, EventArgs e)
         {
             try
             {
@@ -46,10 +46,10 @@ namespace CarpenterWorkshopWPF
                 List<StorageViewModel> listB = serviceB.GetList();
                 if (listB != null)
                 {
-                    comboBoxBaza.DisplayMemberPath = "StorageName";
-                    comboBoxBaza.SelectedValuePath = "Id";
-                    comboBoxBaza.ItemsSource = listB;
-                    comboBoxBaza.SelectedItem = null;
+                    comboBoxStorage.DisplayMemberPath = "StorageName";
+                    comboBoxStorage.SelectedValuePath = "Id";
+                    comboBoxStorage.ItemsSource = listB;
+                    comboBoxStorage.SelectedItem = null;
                 }
             }
             catch (Exception ex)
@@ -70,7 +70,7 @@ namespace CarpenterWorkshopWPF
                 MessageBox.Show("Выберите заготовку", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            if (comboBoxBaza.SelectedItem == null)
+            if (comboBoxStorage.SelectedItem == null)
             {
                 MessageBox.Show("Выберите базу", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
@@ -80,7 +80,7 @@ namespace CarpenterWorkshopWPF
                 serviceG.PutComponentOnStock(new StorageBlankBindingModel
                 {
                     WoodBlanksID = Convert.ToInt32(comboBoxWoodBlanks.SelectedValue),
-                    StorageID = Convert.ToInt32(comboBoxBaza.SelectedValue),
+                    StorageID = Convert.ToInt32(comboBoxStorage.SelectedValue),
                     Count = Convert.ToInt32(textBoxCount.Text)
                 });
                 MessageBox.Show("Сохранение прошло успешно", "Информация",
