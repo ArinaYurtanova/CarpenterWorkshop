@@ -75,9 +75,9 @@ namespace CarpenterWorkshopWPF
             form.ShowDialog();
         }
 
-        private void пополнитьБазуToolStripMenuItem_Click(object sender, EventArgs e)
+        private void пополнитьСкладToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormPutOnBaza>();
+            var form = Container.Resolve<FormPutOnStorage>();
             form.ShowDialog();
         }
 

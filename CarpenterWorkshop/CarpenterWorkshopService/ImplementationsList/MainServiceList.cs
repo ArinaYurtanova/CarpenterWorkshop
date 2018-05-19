@@ -68,8 +68,8 @@ namespace CarpenterWorkshopService.ImplementationsList
                 throw new Exception("Элемент не найден");
             }
             // смотрим по количеству компонентов на складах
-            var StorageBlanks = source.BlanksCrafts.Where(rec => rec.WoodCraftsID == element.WoodCraftsID);
-            foreach (var blankCraft in StorageBlanks)
+            var blankCrafts = source.BlanksCrafts.Where(rec => rec.WoodCraftsID == element.WoodCraftsID);
+            foreach (var blankCraft in blankCrafts)
             {
                 int countOnStocks = source.StorageBlanks
                                             .Where(rec => rec.WoodBlanksID == blankCraft.WoodBlanksID)
@@ -83,7 +83,7 @@ namespace CarpenterWorkshopService.ImplementationsList
                 }
             }
             // списываем
-            foreach (var blankCraft in StorageBlanks)
+            foreach (var blankCraft in blankCrafts)
             {
                 int countOnStorage = blankCraft.Count * element.Count;
                 var storageBlanks = source.StorageBlanks

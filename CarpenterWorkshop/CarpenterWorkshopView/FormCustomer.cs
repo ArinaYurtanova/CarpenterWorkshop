@@ -1,4 +1,5 @@
-﻿using CarpenterWorkshopService.Intefaces;
+﻿using CarpenterWorkshopService.BindingModels;
+using CarpenterWorkshopService.Intefaces;
 using CarpenterWorkshopService.ViewModels;
 using System;
 using System.Collections.Generic;

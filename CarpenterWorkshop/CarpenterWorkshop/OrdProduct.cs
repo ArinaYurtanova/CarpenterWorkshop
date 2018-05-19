@@ -26,5 +26,11 @@ namespace CarpenterWorkshop
         public DateTime DateCreate { get; set; }
 
         public DateTime? DateImplement { get; set; }
+
+        public virtual Сustomer Customer { get; set; }
+
+        public virtual WoodCraft WoodCraft { get; set; }
+
+        public virtual Worker Worker { get; set; }
     }
 }
