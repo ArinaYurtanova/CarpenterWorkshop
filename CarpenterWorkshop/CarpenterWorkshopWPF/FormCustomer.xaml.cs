@@ -1,21 +1,16 @@
-﻿using CarpenterWorkshopService.Intefaces;
+﻿using System;
+using System.Windows;
+using CarpenterWorkshopService.BindingModels;
+using CarpenterWorkshopService.Intefaces;
 using CarpenterWorkshopService.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using Unity;
 using Unity.Attributes;
-
-namespace CarpenterWorkshopView
+namespace CarpenterWorkshopWPF
 {
-    public partial class FormCustomer : Form
+    /// <summary>
+    /// Логика взаимодействия для FormCustomer.xaml
+    /// </summary>
+    public partial class FormCustomer : Window
     {
         [Dependency]
         public new IUnityContainer Container { get; set; }
@@ -29,6 +24,7 @@ namespace CarpenterWorkshopView
         public FormCustomer(ICustomerService service)
         {
             InitializeComponent();
+            Loaded += FormCustomer_Load;
             this.service = service;
         }
 
@@ -40,22 +36,20 @@ namespace CarpenterWorkshopView
                 {
                     CustomerViewModel view = service.GetElement(id.Value);
                     if (view != null)
-                    {
-                        textBoxFIO.Text = view.CustomerFIO;
-                    }
+                        textBoxFullName.Text = view.CustomerFIO;
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
 
         private void buttonSave_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(textBoxFIO.Text))
+            if (string.IsNullOrEmpty(textBoxFullName.Text))
             {
-                MessageBox.Show("Заполните ФИО", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Заполните ФИО", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
             try
@@ -65,29 +59,29 @@ namespace CarpenterWorkshopView
                     service.UpdElement(new CustomerBidingModel
                     {
                         Id = id.Value,
-                        CustomerFIO = textBoxFIO.Text
+                        CustomerFIO = textBoxFullName.Text
                     });
                 }
                 else
                 {
                     service.AddElement(new CustomerBidingModel
                     {
-                        CustomerFIO = textBoxFIO.Text
+                        CustomerFIO = textBoxFullName.Text
                     });
                 }
-                MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                DialogResult = DialogResult.OK;
+                MessageBox.Show("Сохранение прошло успешно", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogResult = true;
                 Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void buttonCancel_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
+            DialogResult = false;
             Close();
         }
     }
