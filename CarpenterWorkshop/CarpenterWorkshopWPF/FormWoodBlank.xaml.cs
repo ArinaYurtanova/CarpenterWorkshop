@@ -1,10 +1,15 @@
-﻿using System;
-using System.Windows;
-using CarpenterWorkshopService.BindingModels;
-using CarpenterWorkshopService.Intefaces;
+﻿using CarpenterWorkshopService.BindingModels;
 using CarpenterWorkshopService.ViewModels;
-using Unity;
-using Unity.Attributes;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+
 
 namespace CarpenterWorkshopWPF
 {
@@ -12,21 +17,16 @@ namespace CarpenterWorkshopWPF
     /// Логика взаимодействия для FormWoodBlank.xaml
     /// </summary>
     public partial class FormWoodBlank : Window
-    {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
+    {        
 
         public int Id { set { id = value; } }
 
-        private readonly IWoodBlankService service;
-
         private int? id;
 
-        public FormWoodBlank(IWoodBlankService service)
+        public FormWoodBlank()
         {
             InitializeComponent();
-            Loaded += FormWoodBlank_Load;
-            this.service = service;
+            Loaded += FormWoodBlank_Load;          
         }
 
         private void FormWoodBlank_Load(object sender, EventArgs e)
@@ -35,10 +35,15 @@ namespace CarpenterWorkshopWPF
             {
                 try
                 {
-                    WoodBlankViewModel view = service.GetElement(id.Value);
-                    if (view != null)
+                    var response = APIClient.GetRequest("api/WoodBlank/Get/" + id.Value);
+                    if (response.Result.IsSuccessStatusCode)
                     {
-                        textBoxName.Text = view.WoodBlanksName;
+                        var WoodBlank = APIClient.GetElement<WoodBlankViewModel>(response);
+                        textBoxName.Text = WoodBlank.WoodBlanksName;
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
                     }
                 }
                 catch (Exception ex)
@@ -57,9 +62,10 @@ namespace CarpenterWorkshopWPF
             }
             try
             {
+                Task<HttpResponseMessage> response;
                 if (id.HasValue)
                 {
-                    service.UpdElement(new WoodBlanksBindingModel
+                    response = APIClient.PostRequest("api/WoodBlank/UpdElement", new WoodBlanksBindingModel
                     {
                         Id = id.Value,
                         WoodBlanksName = textBoxName.Text
@@ -67,14 +73,21 @@ namespace CarpenterWorkshopWPF
                 }
                 else
                 {
-                    service.AddElement(new WoodBlanksBindingModel
+                    response = APIClient.PostRequest("api/WoodBlank/AddElement", new WoodBlanksBindingModel
                     {
                         WoodBlanksName = textBoxName.Text
                     });
                 }
-                MessageBox.Show("Сохранение прошло успешно", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
-                DialogResult = true;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information);
+                    DialogResult = true;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {

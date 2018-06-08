@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Список мебели" Height="351" Width="480">
     <Grid Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
-        <DataGrid x:Name="dataGridViewCrafts" HorizontalAlignment="Left" Height="312" VerticalAlignment="Top" Width="350" Background="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}" IsReadOnly="True" SelectionMode="Single"/>
+        <DataGrid x:Name="dataGridViewWoodCrafts" HorizontalAlignment="Left" Height="312" VerticalAlignment="Top" Width="350" Background="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}" IsReadOnly="True" SelectionMode="Single"/>
         <Button x:Name="buttonAdd" Content="Добавить" HorizontalAlignment="Left" Margin="373,25,0,0" VerticalAlignment="Top" Width="74" Click="buttonAdd_Click"/>
         <Button x:Name="buttonUpd" Content="Изменить" HorizontalAlignment="Left" Margin="373,74,0,0" VerticalAlignment="Top" Width="74" Click="buttonUpd_Click"/>
         <Button x:Name="buttonDel" Content="Удалить" HorizontalAlignment="Left" Margin="373,122,0,0" VerticalAlignment="Top" Width="74" Click="buttonDel_Click"/>

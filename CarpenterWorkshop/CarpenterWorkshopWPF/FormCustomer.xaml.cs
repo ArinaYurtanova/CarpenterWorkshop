@@ -1,10 +1,12 @@
-﻿using System;
-using System.Windows;
-using CarpenterWorkshopService.BindingModels;
-using CarpenterWorkshopService.Intefaces;
+﻿using CarpenterWorkshopService.BindingModels;
 using CarpenterWorkshopService.ViewModels;
-using Unity;
-using Unity.Attributes;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
 namespace CarpenterWorkshopWPF
 {
     /// <summary>
@@ -12,20 +14,15 @@ namespace CarpenterWorkshopWPF
     /// </summary>
     public partial class FormCustomer : Window
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
+        
         public int Id { set { id = value; } }
-
-        private readonly ICustomerService service;
 
         private int? id;
 
-        public FormCustomer(ICustomerService service)
+        public FormCustomer()
         {
             InitializeComponent();
-            Loaded += FormCustomer_Load;
-            this.service = service;
+            Loaded += FormCustomer_Load;          
         }
 
         private void FormCustomer_Load(object sender, EventArgs e)
@@ -34,9 +31,16 @@ namespace CarpenterWorkshopWPF
             {
                 try
                 {
-                    CustomerViewModel view = service.GetElement(id.Value);
-                    if (view != null)
-                        textBoxFullName.Text = view.CustomerFIO;
+                    var response = APIClient.GetRequest("api/Customer/Get/" + id.Value);
+                    if (response.Result.IsSuccessStatusCode)
+                    {
+                        var Customer = APIClient.GetElement<CustomerViewModel>(response);
+                        textBoxFullName.Text = Customer.CustomerFIO;
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -54,9 +58,10 @@ namespace CarpenterWorkshopWPF
             }
             try
             {
+                Task<HttpResponseMessage> response;
                 if (id.HasValue)
                 {
-                    service.UpdElement(new CustomerBidingModel
+                    response = APIClient.PostRequest("api/Customer/UpdElement", new CustomerBidingModel
                     {
                         Id = id.Value,
                         CustomerFIO = textBoxFullName.Text
@@ -64,14 +69,21 @@ namespace CarpenterWorkshopWPF
                 }
                 else
                 {
-                    service.AddElement(new CustomerBidingModel
+                    response = APIClient.PostRequest("api/Customer/AddElement", new CustomerBidingModel
                     {
                         CustomerFIO = textBoxFullName.Text
                     });
+                }              
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information);
+                    DialogResult =true;
+                    Close();
                 }
-                MessageBox.Show("Сохранение прошло успешно", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
-                DialogResult = true;
-                Close();
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {

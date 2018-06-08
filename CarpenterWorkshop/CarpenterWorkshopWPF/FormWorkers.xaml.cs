@@ -1,28 +1,25 @@
-﻿using System;
+﻿using CarpenterWorkshopService.BindingModels;
+using CarpenterWorkshopService.ViewModels;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using CarpenterWorkshopService.Intefaces;
-using CarpenterWorkshopService.ViewModels;
-using Unity;
-using Unity.Attributes;
+
 namespace CarpenterWorkshopWPF
 {
     /// <summary>
     /// Логика взаимодействия для FormWorkers.xaml
     /// </summary>
     public partial class FormWorkers : Window
-    {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
+    {        
 
-        private readonly IWorkerService service;
-
-        public FormWorkers(IWorkerService service)
+        public FormWorkers()
         {
             InitializeComponent();
-            Loaded += FormWorkers_Load;
-            this.service = service;
+            Loaded += FormWorkers_Load;           
         }
 
         private void FormWorkers_Load(object sender, EventArgs e)
@@ -34,12 +31,20 @@ namespace CarpenterWorkshopWPF
         {
             try
             {
-                List<WorkerVeiwModel> list = service.GetList();
-                if (list != null)
+                var response = APIClient.GetRequest("api/Worker/GetList");
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    List<WorkerVeiwModel> list = APIClient.GetElement<List<WorkerVeiwModel>>(response);
+                    if (list != null)
                 {
                     dataGridViewWorkers.ItemsSource = list;
                     dataGridViewWorkers.Columns[0].Visibility = Visibility.Hidden;
                     dataGridViewWorkers.Columns[1].Width = DataGridLength.Auto;
+                }
+            }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)
@@ -50,7 +55,7 @@ namespace CarpenterWorkshopWPF
 
         private void buttonAdd_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormWorker>();
+            var form = new FormWorker();
             if (form.ShowDialog() == true)
                 LoadData();
         }
@@ -59,7 +64,7 @@ namespace CarpenterWorkshopWPF
         {
             if (dataGridViewWorkers.SelectedItem != null)
             {
-                var form = Container.Resolve<FormWorker>();
+                var form = new FormWorker();
                 form.Id = ((WorkerVeiwModel)dataGridViewWorkers.SelectedItem).Id;
                 if (form.ShowDialog() == true)
                     LoadData();
@@ -76,7 +81,11 @@ namespace CarpenterWorkshopWPF
                     int id = ((WorkerVeiwModel)dataGridViewWorkers.SelectedItem).Id;
                     try
                     {
-                        service.DelElement(id);
+                        var response = APIClient.PostRequest("api/Worker/DelElement", new CustomerBidingModel { Id = id });
+                        if (!response.Result.IsSuccessStatusCode)
+                        {
+                            throw new Exception(APIClient.GetError(response));
+                        }
                     }
                     catch (Exception ex)
                     {

@@ -1,4 +1,5 @@
-﻿using CarpenterWorkshopService.Intefaces;
+﻿using CarpenterWorkshopService.BindingModels;
+using CarpenterWorkshopService.Intefaces;
 using CarpenterWorkshopService.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -16,18 +17,12 @@ namespace CarpenterWorkshopView
 {
     public partial class FormWoodBlanks : Form
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
-        private readonly IWoodBlankService service;
-
-        public FormWoodBlanks(IWoodBlankService service)
+        public FormWoodBlanks()
         {
             InitializeComponent();
-            this.service = service;
         }
 
-        private void FormComponents_Load(object sender, EventArgs e)
+        private void FormWoodBlanks_Load(object sender, EventArgs e)
         {
             LoadData();
         }
@@ -36,12 +31,20 @@ namespace CarpenterWorkshopView
         {
             try
             {
-                List<WoodBlankViewModel> list = service.GetList();
-                if (list != null)
+                var response = APIClient.GetRequest("api/WoodBlank/GetList");
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    dataGridView.DataSource = list;
-                    dataGridView.Columns[0].Visible = false;
-                    dataGridView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                    List<WoodBlankViewModel> list = APIClient.GetElement<List<WoodBlankViewModel>>(response);
+                    if (list != null)
+                    {
+                        dataGridView.DataSource = list;
+                        dataGridView.Columns[0].Visible = false;
+                        dataGridView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                    }
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)
@@ -52,7 +55,7 @@ namespace CarpenterWorkshopView
 
         private void buttonAdd_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormWoodBlank>();
+            var form = new FormWoodBlank();
             if (form.ShowDialog() == DialogResult.OK)
             {
                 LoadData();
@@ -63,7 +66,7 @@ namespace CarpenterWorkshopView
         {
             if (dataGridView.SelectedRows.Count == 1)
             {
-                var form = Container.Resolve<FormWoodBlank>();
+                var form = new FormWoodBlank();
                 form.Id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
                 if (form.ShowDialog() == DialogResult.OK)
                 {
@@ -81,7 +84,11 @@ namespace CarpenterWorkshopView
                     int id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
                     try
                     {
-                        service.DelElement(id);
+                        var response = APIClient.PostRequest("api/WoodBlank/DelElement", new CustomerBidingModel { Id = id });
+                        if (!response.Result.IsSuccessStatusCode)
+                        {
+                            throw new Exception(APIClient.GetError(response));
+                        }
                     }
                     catch (Exception ex)
                     {

@@ -110,7 +110,7 @@
             this.Name = "FormStorage";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Хранилище";
-            this.Load += new System.EventHandler(this.FormStock_Load);
+            this.Load += new System.EventHandler(this.FormStorage_Load);
             this.groupBoxComponents.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).EndInit();
             this.ResumeLayout(false);

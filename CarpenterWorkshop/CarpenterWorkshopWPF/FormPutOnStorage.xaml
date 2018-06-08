@@ -11,7 +11,7 @@
         <Label x:Name="labelComponent" Content="заготовка:" HorizontalAlignment="Left" Margin="10,41,0,0" VerticalAlignment="Top"/>
         <Label x:Name="labelCount" Content="Количество:" HorizontalAlignment="Left" Margin="10,72,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name="comboBoxStorage" HorizontalAlignment="Left" Margin="92,14,0,0" VerticalAlignment="Top" Width="222"/>
-        <ComboBox x:Name="comboBoxWoodBlanks" HorizontalAlignment="Left" Margin="92,45,0,0" VerticalAlignment="Top" Width="222"/>
+        <ComboBox x:Name="comboBoxWoodBlank" HorizontalAlignment="Left" Margin="92,45,0,0" VerticalAlignment="Top" Width="222"/>
         <TextBox x:Name="textBoxCount" HorizontalAlignment="Left" Height="23" Margin="92,75,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="222"/>
         <Button x:Name="buttonSave" Content="Сохранить" HorizontalAlignment="Left" Margin="149,103,0,0" VerticalAlignment="Top" Width="75" Click="buttonSave_Click"/>
         <Button x:Name="buttonCancel" Content="Отмена" HorizontalAlignment="Left" Margin="239,103,0,0" VerticalAlignment="Top" Width="75" Click="buttonCancel_Click"/>
