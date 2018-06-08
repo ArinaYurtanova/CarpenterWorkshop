@@ -26,41 +26,30 @@ namespace CarpenterWorkshopView
         {
             try
             {
-                var responseC = APIClient.GetRequest("api/Customer/GetList");
-                if (responseC.Result.IsSuccessStatusCode)
+                List<CustomerViewModel> listC = Task.Run(() => APIClient.GetRequestData<List<CustomerViewModel>>("api/Customer/GetList")).Result;
+                if (listC != null)
                 {
-                    List<CustomerViewModel> list = APIClient.GetElement<List<CustomerViewModel>>(responseC);
-                    if (list != null)
-                    {
-                        comboBoxClient.DisplayMember = "CustomerFIO";
-                        comboBoxClient.ValueMember = "Id";
-                        comboBoxClient.DataSource = list;
-                        comboBoxClient.SelectedItem = null;
-                    }
+                    comboBoxClient.DisplayMember = "CustomerFIO";
+                    comboBoxClient.ValueMember = "Id";
+                    comboBoxClient.DataSource = listC;
+                    comboBoxClient.SelectedItem = null;
                 }
-                else
+
+                List<WoodCraftViewModel> listP = Task.Run(() => APIClient.GetRequestData<List<WoodCraftViewModel>>("api/WoodCraft/GetList")).Result;
+                if (listP != null)
                 {
-                    throw new Exception(APIClient.GetError(responseC));
-                }
-                var responseP = APIClient.GetRequest("api/WoodCraft/GetList");
-                if (responseP.Result.IsSuccessStatusCode)
-                {
-                    List<WoodCraftViewModel> list = APIClient.GetElement<List<WoodCraftViewModel>>(responseP);
-                    if (list != null)
-                    {
-                        comboBoxProduct.DisplayMember = "WoodCraftsName";
-                        comboBoxProduct.ValueMember = "ID";
-                        comboBoxProduct.DataSource = list;
-                        comboBoxProduct.SelectedItem = null;
-                    }
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(responseP));
+                    comboBoxProduct.DisplayMember = "ProductName";
+                    comboBoxProduct.ValueMember = "Id";
+                    comboBoxProduct.DataSource = listP;
+                    comboBoxProduct.SelectedItem = null;
                 }
             }
             catch (Exception ex)
             {
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -72,20 +61,16 @@ namespace CarpenterWorkshopView
                 try
                 {
                     int id = Convert.ToInt32(comboBoxProduct.SelectedValue);
-                    var responseP = APIClient.GetRequest("api/WoodCraft/Get/" + id);
-                    if (responseP.Result.IsSuccessStatusCode)
-                    {
-                        WoodCraftViewModel product = APIClient.GetElement<WoodCraftViewModel>(responseP);
-                        int count = Convert.ToInt32(textBoxCount.Text);
-                        textBoxSum.Text = (count * (int)product.Price).ToString();
-                    }
-                    else
-                    {
-                        throw new Exception(APIClient.GetError(responseP));
-                    }
+                    WoodCraftViewModel product = Task.Run(() => APIClient.GetRequestData<WoodCraftViewModel>("api/WoodCraft/Get/" + id)).Result;
+                    int count = Convert.ToInt32(textBoxCount.Text);
+                    textBoxSum.Text = (count * (int)product.Price).ToString();
                 }
                 catch (Exception ex)
                 {
+                    while (ex.InnerException != null)
+                    {
+                        ex = ex.InnerException;
+                    }
                     MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
@@ -118,35 +103,35 @@ namespace CarpenterWorkshopView
                 MessageBox.Show("Выберите изделие", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            try
+            int clientId = Convert.ToInt32(comboBoxClient.SelectedValue);
+            int productId = Convert.ToInt32(comboBoxProduct.SelectedValue);
+            int count = Convert.ToInt32(textBoxCount.Text);
+            int sum = Convert.ToInt32(textBoxSum.Text);
+            Task task = Task.Run(() => APIClient.PostRequestData("api/Main/CreateOrder", new OrdProductBindingModel
             {
-                var response = APIClient.PostRequest("api/Main/CreateOrder", new OrdProductBindingModel
-                {
-                    CustomerID = Convert.ToInt32(comboBoxClient.SelectedValue),
-                    WoodCraftsID = Convert.ToInt32(comboBoxProduct.SelectedValue),
-                    Count = Convert.ToInt32(textBoxCount.Text),
-                    Sum = Convert.ToInt32(textBoxSum.Text)
-                });
-                if (response.Result.IsSuccessStatusCode)
-                {
-                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    DialogResult = DialogResult.OK;
-                    Close();
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
-                }
-            }
-            catch (Exception ex)
+                CustomerID = clientId,
+                WoodCraftsID = productId,
+                Count = count,
+                Sum = sum
+            }));
+
+            task.ContinueWith((prevTask) => MessageBox.Show("Сохранение прошло успешно. Обновите список", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information),
+                TaskContinuationOptions.OnlyOnRanToCompletion);
+            task.ContinueWith((prevTask) =>
             {
+                var ex = (Exception)prevTask.Exception;
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            }, TaskContinuationOptions.OnlyOnFaulted);
+
+            Close();
         }
 
         private void buttonCancel_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
             Close();
         }
     }
