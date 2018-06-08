@@ -54,9 +54,21 @@ namespace CarpenterWorkshopRestApi.Controllers
         }
 
         [HttpPost]
-        public void  PutComponentOnStock(StorageBlankBindingModel model)
+        public void PutComponentOnStock(StorageBlankBindingModel model)
         {
             _service.PutComponentOnStock(model);
+        }
+
+        [HttpGet]
+        public IHttpActionResult GetInfo()
+        {
+            ReflectionService service = new ReflectionService();
+            var list = service.GetInfoByAssembly();
+            if (list == null)
+            {
+                InternalServerError(new Exception("Нет данных"));
+            }
+            return Ok(list);
         }
     }
 }

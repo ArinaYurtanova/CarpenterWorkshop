@@ -5,14 +5,14 @@ namespace CarpenterWorkshopService.Migrations
     using System.Data.Entity.Migrations;
     using System.Linq;
 
-    internal sealed class Configuration : DbMigrationsConfiguration<CarpenterWorkshopService.AbstractDbContext>
+    internal sealed class Configuration : DbMigrationsConfiguration<CarpenterWorkshopService. AbstractDbContext>
     {
         public Configuration()
         {
             AutomaticMigrationsEnabled = false;
         }
 
-        protected override void Seed(CarpenterWorkshopService.AbstractDbContext context)
+        protected override void Seed(CarpenterWorkshopService. AbstractDbContext context)
         {
             //  This method will be called after migrating to the latest version.
 
