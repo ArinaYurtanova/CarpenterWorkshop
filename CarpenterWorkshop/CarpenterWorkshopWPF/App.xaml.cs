@@ -2,7 +2,7 @@
 using System.Data.Entity;
 using System.Windows;
 using CarpenterWorkshopService;
-using CarpenterWorkshopService.CarpenterWorkshopService;
+
 using CarpenterWorkshopService.ImplementationsBD;
 using CarpenterWorkshopService.ImplementationsList;
 using CarpenterWorkshopService.Intefaces;
@@ -46,6 +46,7 @@ namespace CarpenterWorkshopWPF
             currentContainer.RegisterType<IWoodCraftService, WoodCraftServiceBD>(new HierarchicalLifetimeManager());
             currentContainer.RegisterType<IStorageService, StorageServiceBD>(new HierarchicalLifetimeManager());
             currentContainer.RegisterType<IMainService, MainServiceBD>(new HierarchicalLifetimeManager());
+            currentContainer.RegisterType<IReportService, ReportServiceBD>(new HierarchicalLifetimeManager());
             return currentContainer;
         }
     }

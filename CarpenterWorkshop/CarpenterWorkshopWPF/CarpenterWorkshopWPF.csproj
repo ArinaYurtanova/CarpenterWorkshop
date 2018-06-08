@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D4E6304F-3FA5-4F4F-8DEF-34F8FDC2FD39}</ProjectGuid>
+    <ProjectGuid>{1DF259FC-45A1-48B0-8594-8462A06F0DE2}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>CarpenterWorkshopWPF</RootNamespace>
-    <AssemblyName>CarpenterWorkshopWPF</AssemblyName>
+    <RootNamespace>CarpenterWorkshopWpf</RootNamespace>
+    <AssemblyName>CarpenterWorkshopWpf</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -43,9 +43,40 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Office.Interop.Excel.15.0.4795.1000\lib\net20\Microsoft.Office.Interop.Excel.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.Office.Interop.Word, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Office.Interop.Word.15.0.4797.1003\lib\net20\Microsoft.Office.Interop.Word.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.Common, Version=11.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Report.Viewer.11.0.0.0\lib\net\Microsoft.ReportViewer.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.DataVisualization, Version=14.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ReportingServices.ReportViewerControl.Winforms.140.1000.523\lib\net40\Microsoft.ReportViewer.DataVisualization.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.Design, Version=14.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ReportingServices.ReportViewerControl.Winforms.140.1000.523\lib\net40\Microsoft.ReportViewer.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.ProcessingObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Report.Viewer.11.0.0.0\lib\net\Microsoft.ReportViewer.ProcessingObjectModel.DLL</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.WebForms, Version=11.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Report.Viewer.11.0.0.0\lib\net\Microsoft.ReportViewer.WebForms.DLL</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.WinForms, Version=14.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ReportingServices.ReportViewerControl.Winforms.140.1000.523\lib\net40\Microsoft.ReportViewer.WinForms.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Types, Version=14.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.SqlServer.Types.14.0.314.76\lib\net40\Microsoft.SqlServer.Types.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -55,6 +86,7 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="UIAutomationProvider" />
     <Reference Include="Unity.Abstractions, Version=3.3.0.0, Culture=neutral, PublicKeyToken=6d32ff45e0ccc69f, processorArchitecture=MSIL">
       <HintPath>..\packages\Unity.5.8.6\lib\net46\Unity.Abstractions.dll</HintPath>
     </Reference>
@@ -79,17 +111,18 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="FormStorage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="FormStorages.xaml">
+    <Compile Include="FormCustomerOrder.xaml.cs">
+      <DependentUpon>FormCustomerOrder.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="SqlServerTypes\Loader.cs" />
+    <Page Include="FormCraftBlank.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -97,23 +130,19 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="FormMain.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="FormWoodCraft.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="FormWoodCrafts.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="FormCustomer.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="FormCustomerOrder.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="FormCustomers.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="FormMain.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -121,11 +150,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="FormWorker.xaml">
+    <Page Include="FormStorage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="FormWorkers.xaml">
+    <Page Include="FormStorages.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -137,11 +166,23 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="FormCraftBlank.xaml">
+    <Page Include="FormWoodBlanks.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="FormWoodBlanks.xaml">
+    <Page Include="FormWoodCraft.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="FormWoodCrafts.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="FormWorker.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="FormWorkers.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -149,23 +190,11 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="FormStorage.xaml.cs">
-      <DependentUpon>FormStorage.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="FormStorages.xaml.cs">
-      <DependentUpon>FormStorages.xaml</DependentUpon>
+    <Compile Include="FormCraftBlank.xaml.cs">
+      <DependentUpon>FormCraftBlank.xaml</DependentUpon>
     </Compile>
     <Compile Include="FormCreateOrder.xaml.cs">
       <DependentUpon>FormCreateOrder.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="FormMain.xaml.cs">
-      <DependentUpon>FormMain.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="FormWoodCraft.xaml.cs">
-      <DependentUpon>FormWoodCraft.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="FormWoodCrafts.xaml.cs">
-      <DependentUpon>FormWoodCrafts.xaml</DependentUpon>
     </Compile>
     <Compile Include="FormCustomer.xaml.cs">
       <DependentUpon>FormCustomer.xaml</DependentUpon>
@@ -173,14 +202,17 @@
     <Compile Include="FormCustomers.xaml.cs">
       <DependentUpon>FormCustomers.xaml</DependentUpon>
     </Compile>
+    <Compile Include="FormMain.xaml.cs">
+      <DependentUpon>FormMain.xaml</DependentUpon>
+    </Compile>
     <Compile Include="FormPutOnStorage.xaml.cs">
       <DependentUpon>FormPutOnStorage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="FormWorker.xaml.cs">
-      <DependentUpon>FormWorker.xaml</DependentUpon>
+    <Compile Include="FormStorage.xaml.cs">
+      <DependentUpon>FormStorage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="FormWorkers.xaml.cs">
-      <DependentUpon>FormWorkers.xaml</DependentUpon>
+    <Compile Include="FormStorages.xaml.cs">
+      <DependentUpon>FormStorages.xaml</DependentUpon>
     </Compile>
     <Compile Include="FormTakeOrderInWork.xaml.cs">
       <DependentUpon>FormTakeOrderInWork.xaml</DependentUpon>
@@ -188,11 +220,20 @@
     <Compile Include="FormWoodBlank.xaml.cs">
       <DependentUpon>FormWoodBlank.xaml</DependentUpon>
     </Compile>
-    <Compile Include="FormCraftBlank.xaml.cs">
-      <DependentUpon>FormCraftBlank.xaml</DependentUpon>
-    </Compile>
     <Compile Include="FormWoodBlanks.xaml.cs">
       <DependentUpon>FormWoodBlanks.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="FormWoodCraft.xaml.cs">
+      <DependentUpon>FormWoodCraft.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="FormWoodCrafts.xaml.cs">
+      <DependentUpon>FormWoodCrafts.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="FormWorker.xaml.cs">
+      <DependentUpon>FormWorker.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="FormWorkers.xaml.cs">
+      <DependentUpon>FormWorkers.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -213,7 +254,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Include="ReportCustomersOrders.rdlc" />
     <None Include="packages.config" />
+    <None Include="Properties\DataSources\CarpenterWorkshopService.ViewModels.CustomerOrdersModel.datasource" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -227,6 +270,21 @@
       <Project>{A99698C9-19F3-4CBF-9E32-C1CC586ACBE5}</Project>
       <Name>CarpenterWorkshopService</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="SqlServerTypes\readme.htm" />
+    <Content Include="SqlServerTypes\x64\msvcr120.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SqlServerTypes\x64\SqlServerSpatial140.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SqlServerTypes\x86\msvcr120.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SqlServerTypes\x86\SqlServerSpatial140.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

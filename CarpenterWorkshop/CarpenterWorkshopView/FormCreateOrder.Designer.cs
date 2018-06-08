@@ -54,9 +54,9 @@
             this.labelClient.AutoSize = true;
             this.labelClient.Location = new System.Drawing.Point(12, 9);
             this.labelClient.Name = "labelClient";
-            this.labelClient.Size = new System.Drawing.Size(58, 13);
+            this.labelClient.Size = new System.Drawing.Size(46, 13);
             this.labelClient.TabIndex = 0;
-            this.labelClient.Text = "Заказчик:";
+            this.labelClient.Text = "Клиент:";
             // 
             // labelCount
             // 
@@ -110,9 +110,9 @@
             this.labelProduct.AutoSize = true;
             this.labelProduct.Location = new System.Drawing.Point(12, 36);
             this.labelProduct.Name = "labelProduct";
-            this.labelProduct.Size = new System.Drawing.Size(47, 13);
+            this.labelProduct.Size = new System.Drawing.Size(54, 13);
             this.labelProduct.TabIndex = 2;
-            this.labelProduct.Text = "Утварь:";
+            this.labelProduct.Text = "Изделие:";
             // 
             // labelSum
             // 
