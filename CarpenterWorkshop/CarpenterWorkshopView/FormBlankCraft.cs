@@ -29,21 +29,17 @@ namespace CarpenterWorkshopView
         {
             try
             {
-                var response = APIClient.GetRequest("api/WoodBlank/GetList");
-                if (response.Result.IsSuccessStatusCode)
-                {
-                    comboBoxComponent.DisplayMember = "WoodBlanksName";
-                    comboBoxComponent.ValueMember = "ID";
-                    comboBoxComponent.DataSource = APIClient.GetElement<List<WoodBlankViewModel>>(response);
-                    comboBoxComponent.SelectedItem = null;
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
-                }
+                comboBoxComponent.DisplayMember = "WoodBlanksName";
+                comboBoxComponent.ValueMember = "Id";
+                comboBoxComponent.DataSource = Task.Run(() => APIClient.GetRequestData<List<WoodBlankViewModel>>("api/WoodBlank/GetList")).Result;
+                comboBoxComponent.SelectedItem = null;
             }
             catch (Exception ex)
             {
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             if (model != null)
