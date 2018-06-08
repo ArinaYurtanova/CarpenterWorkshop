@@ -29,7 +29,7 @@ namespace CarpenterWorkshopView
                 List<WoodBlankViewModel> listC = Task.Run(() => APIClient.GetRequestData<List<WoodBlankViewModel>>("api/WoodBlank/GetList")).Result;
                 if (listC != null)
                 {
-                    comboBoxComponent.DisplayMember = "WoodBlankName";
+                    comboBoxComponent.DisplayMember = "WoodBlanksName";
                     comboBoxComponent.ValueMember = "Id";
                     comboBoxComponent.DataSource = listC;
                     comboBoxComponent.SelectedItem = null;
@@ -74,12 +74,12 @@ namespace CarpenterWorkshopView
             try
             {
                 int componentId = Convert.ToInt32(comboBoxComponent.SelectedValue);
-                int StorageId = Convert.ToInt32(comboBoxStock.SelectedValue);
+                int storageId = Convert.ToInt32(comboBoxStock.SelectedValue);
                 int count = Convert.ToInt32(textBoxCount.Text);
-                Task task = Task.Run(() => APIClient.PostRequestData("api/Main/PutComponentOnStorage", new StorageBlankBindingModel
+                Task task = Task.Run(() => APIClient.PostRequestData("api/Main/PutComponentOnStock", new StorageBlankBindingModel
                 {
                     WoodBlanksID = componentId,
-                    StorageID = StorageId,
+                    StorageID = storageId,
                     Count = count
                 }));
 

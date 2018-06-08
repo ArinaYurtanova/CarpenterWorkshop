@@ -63,11 +63,11 @@ namespace CarpenterWorkshopView
             }
             try
             {
-                int implementerId = Convert.ToInt32(comboBoxImplementer.SelectedValue);
+                int workerId = Convert.ToInt32(comboBoxImplementer.SelectedValue);
                 Task task = Task.Run(() => APIClient.PostRequestData("api/Main/TakeOrderInWork", new OrdProductBindingModel
                 {
                     Id = id.Value,
-                    WorkerID = implementerId
+                    WorkerID = workerId
                 }));
 
                 task.ContinueWith((prevTask) => MessageBox.Show("Заказ передан в работу. Обновите список", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information),

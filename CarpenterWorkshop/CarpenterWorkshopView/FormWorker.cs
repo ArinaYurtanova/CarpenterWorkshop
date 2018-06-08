@@ -33,8 +33,8 @@ namespace CarpenterWorkshopView
             {
                 try
                 {
-                    var implementer = Task.Run(() => APIClient.GetRequestData<WorkerVeiwModel>("api/Worker/Get/" + id.Value)).Result;
-                    textBoxFIO.Text = implementer.WorkerFIO;
+                    var worker = Task.Run(() => APIClient.GetRequestData<WorkerVeiwModel>("api/Worker/Get/" + id.Value)).Result;
+                    textBoxFIO.Text = worker.WorkerFIO;
                 }
                 catch (Exception ex)
                 {

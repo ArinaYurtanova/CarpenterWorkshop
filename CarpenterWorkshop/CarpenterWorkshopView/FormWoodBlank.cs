@@ -33,8 +33,8 @@ namespace CarpenterWorkshopView
             {
                 try
                 {
-                    var component = Task.Run(() => APIClient.GetRequestData<WoodBlankViewModel>("api/WoodBlank/Get/" + id.Value)).Result;
-                    textBoxName.Text = component.WoodBlanksName;
+                    var woodBlank = Task.Run(() => APIClient.GetRequestData<WoodBlankViewModel>("api/WoodBlank/Get/" + id.Value)).Result;
+                    textBoxName.Text = woodBlank.WoodBlanksName;
                 }
                 catch (Exception ex)
                 {

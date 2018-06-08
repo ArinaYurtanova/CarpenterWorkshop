@@ -14,7 +14,7 @@ namespace CarpenterWorkshopService.ImplementationsBD
     {
         private AbstractDbContext context;
 
-        public WoodBlankServiceBD(AbstractDbContext context)
+        public WoodBlankServiceBD( AbstractDbContext context)
         {
             this.context = context;
         }

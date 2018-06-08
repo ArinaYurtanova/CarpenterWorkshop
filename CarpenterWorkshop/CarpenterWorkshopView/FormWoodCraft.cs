@@ -22,7 +22,7 @@ namespace CarpenterWorkshopView
 
         private int? id;
 
-        private List<BlankCraftViewModel> BlankCrafts;
+        private List<BlankCraftViewModel> blankCrafts;
 
         public FormWoodCraft()
         {
@@ -35,10 +35,10 @@ namespace CarpenterWorkshopView
             {
                 try
                 {
-                    var product = Task.Run(() => APIClient.GetRequestData<WoodCraftViewModel>("api/WoodCraft/Get/" + id.Value)).Result;
-                    textBoxName.Text = product.WoodCraftsName;
-                    textBoxPrice.Text = product.Price.ToString();
-                    BlankCrafts = product.BlanksCrafts;
+                    var woodCraft = Task.Run(() => APIClient.GetRequestData<WoodCraftViewModel>("api/WoodCraft/Get/" + id.Value)).Result;
+                    textBoxName.Text = woodCraft.WoodCraftsName;
+                    textBoxPrice.Text = woodCraft.Price.ToString();
+                    blankCrafts = woodCraft.BlanksCrafts;
                     LoadData();
                 }
                 catch (Exception ex)
@@ -52,7 +52,7 @@ namespace CarpenterWorkshopView
             }
             else
             {
-                BlankCrafts = new List<BlankCraftViewModel>();
+                blankCrafts = new List<BlankCraftViewModel>();
             }
         }
 
@@ -60,10 +60,10 @@ namespace CarpenterWorkshopView
         {
             try
             {
-                if (BlankCrafts != null)
+                if (blankCrafts != null)
                 {
                     dataGridView.DataSource = null;
-                    dataGridView.DataSource = BlankCrafts;
+                    dataGridView.DataSource = blankCrafts;
                     dataGridView.Columns[0].Visible = false;
                     dataGridView.Columns[1].Visible = false;
                     dataGridView.Columns[2].Visible = false;
@@ -87,7 +87,7 @@ namespace CarpenterWorkshopView
                     {
                         form.Model.WoodCraftsID = id.Value;
                     }
-                    BlankCrafts.Add(form.Model);
+                    blankCrafts.Add(form.Model);
                 }
                 LoadData();
             }
@@ -98,10 +98,10 @@ namespace CarpenterWorkshopView
             if (dataGridView.SelectedRows.Count == 1)
             {
                 var form = new FormBlankCraft();
-                form.Model = BlankCrafts[dataGridView.SelectedRows[0].Cells[0].RowIndex];
+                form.Model = blankCrafts[dataGridView.SelectedRows[0].Cells[0].RowIndex];
                 if (form.ShowDialog() == DialogResult.OK)
                 {
-                    BlankCrafts[dataGridView.SelectedRows[0].Cells[0].RowIndex] = form.Model;
+                    blankCrafts[dataGridView.SelectedRows[0].Cells[0].RowIndex] = form.Model;
                     LoadData();
                 }
             }
@@ -115,7 +115,7 @@ namespace CarpenterWorkshopView
                 {
                     try
                     {
-                        BlankCrafts.RemoveAt(dataGridView.SelectedRows[0].Cells[0].RowIndex);
+                        blankCrafts.RemoveAt(dataGridView.SelectedRows[0].Cells[0].RowIndex);
                     }
                     catch (Exception ex)
                     {
@@ -143,20 +143,20 @@ namespace CarpenterWorkshopView
                 MessageBox.Show("Заполните цену", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            if (BlankCrafts == null || BlankCrafts.Count == 0)
+            if (blankCrafts == null || blankCrafts.Count == 0)
             {
                 MessageBox.Show("Заполните компоненты", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            List<BlankCraftBindingModel> BlankCraftBM = new List<BlankCraftBindingModel>();
-            for (int i = 0; i < BlankCrafts.Count; ++i)
+            List<BlankCraftBindingModel> blankCraftBM = new List<BlankCraftBindingModel>();
+            for (int i = 0; i < blankCrafts.Count; ++i)
             {
-                BlankCraftBM.Add(new BlankCraftBindingModel
+                blankCraftBM.Add(new BlankCraftBindingModel
                 {
-                    Id = BlankCrafts[i].Id,
-                    WoodCraftsID = BlankCrafts[i].WoodCraftsID,
-                    WoodBlanksID = BlankCrafts[i].WoodBlanksID,
-                    Count = BlankCrafts[i].Count
+                    Id = blankCrafts[i].Id,
+                    WoodCraftsID = blankCrafts[i].WoodCraftsID,
+                    WoodBlanksID = blankCrafts[i].WoodBlanksID,
+                    Count = blankCrafts[i].Count
                 });
             }
             string name = textBoxName.Text;
@@ -169,7 +169,7 @@ namespace CarpenterWorkshopView
                     Id = id.Value,
                     WoodCraftsName = name,
                     Price = price,
-                    BlanksCrafts = BlankCraftBM
+                    BlanksCrafts = blankCraftBM
                 }));
             }
             else
@@ -178,7 +178,7 @@ namespace CarpenterWorkshopView
                 {
                     WoodCraftsName = name,
                     Price = price,
-                    BlanksCrafts = BlankCraftBM
+                    BlanksCrafts = blankCraftBM
                 }));
             }
 

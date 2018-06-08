@@ -38,7 +38,7 @@ namespace CarpenterWorkshopView
                 List<WoodCraftViewModel> listP = Task.Run(() => APIClient.GetRequestData<List<WoodCraftViewModel>>("api/WoodCraft/GetList")).Result;
                 if (listP != null)
                 {
-                    comboBoxProduct.DisplayMember = "ProductName";
+                    comboBoxProduct.DisplayMember = "WoodCraftsName";
                     comboBoxProduct.ValueMember = "Id";
                     comboBoxProduct.DataSource = listP;
                     comboBoxProduct.SelectedItem = null;
@@ -61,9 +61,9 @@ namespace CarpenterWorkshopView
                 try
                 {
                     int id = Convert.ToInt32(comboBoxProduct.SelectedValue);
-                    WoodCraftViewModel product = Task.Run(() => APIClient.GetRequestData<WoodCraftViewModel>("api/WoodCraft/Get/" + id)).Result;
+                    WoodCraftViewModel woodCraft = Task.Run(() => APIClient.GetRequestData<WoodCraftViewModel>("api/WoodCraft/Get/" + id)).Result;
                     int count = Convert.ToInt32(textBoxCount.Text);
-                    textBoxSum.Text = (count * (int)product.Price).ToString();
+                    textBoxSum.Text = (count * (int)woodCraft.Price).ToString();
                 }
                 catch (Exception ex)
                 {
@@ -103,14 +103,14 @@ namespace CarpenterWorkshopView
                 MessageBox.Show("Выберите изделие", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            int clientId = Convert.ToInt32(comboBoxClient.SelectedValue);
-            int productId = Convert.ToInt32(comboBoxProduct.SelectedValue);
+            int customerID = Convert.ToInt32(comboBoxClient.SelectedValue);
+            int woodCraftsID = Convert.ToInt32(comboBoxProduct.SelectedValue);
             int count = Convert.ToInt32(textBoxCount.Text);
             int sum = Convert.ToInt32(textBoxSum.Text);
             Task task = Task.Run(() => APIClient.PostRequestData("api/Main/CreateOrder", new OrdProductBindingModel
             {
-                CustomerID = clientId,
-                WoodCraftsID = productId,
+                CustomerID = customerID,
+                WoodCraftsID = woodCraftsID,
                 Count = count,
                 Sum = sum
             }));
