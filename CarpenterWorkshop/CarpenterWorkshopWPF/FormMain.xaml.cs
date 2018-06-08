@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using CarpenterWorkshopService.BindingModels;
 using CarpenterWorkshopService.Intefaces;
 using CarpenterWorkshopService.ViewModels;
+using CarpenterWorkshopWpf;
+using Microsoft.Win32;
 using Unity;
 using Unity.Attributes;
 namespace CarpenterWorkshopWPF
@@ -18,10 +21,13 @@ namespace CarpenterWorkshopWPF
 
         private readonly IMainService service;
 
-        public FormMain(IMainService service)
+        private readonly IReportService reportService;
+
+        public FormMain(IMainService service, IReportService reportService)
         {
             InitializeComponent();
             this.service = service;
+            this.reportService = reportService;
         }
 
         private void LoadData()
@@ -57,7 +63,7 @@ namespace CarpenterWorkshopWPF
             form.ShowDialog();
         }
 
-        private void изделиеToolStripMenuItem_Click(object sender, EventArgs e)
+        private void мебельToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var form = Container.Resolve<FormWoodCrafts>();
             form.ShowDialog();
@@ -75,20 +81,20 @@ namespace CarpenterWorkshopWPF
             form.ShowDialog();
         }
 
-        private void пополнитьСкладToolStripMenuItem_Click(object sender, EventArgs e)
+        private void пополнитьБазуToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var form = Container.Resolve<FormPutOnStorage>();
             form.ShowDialog();
         }
 
-        private void buttonCreateOrder_Click(object sender, EventArgs e)
+        private void buttonCreateZakaz_Click(object sender, EventArgs e)
         {
             var form = Container.Resolve<FormCreateOrder>();
             form.ShowDialog();
             LoadData();
         }
 
-        private void buttonTakeOrderInWork_Click(object sender, EventArgs e)
+        private void buttonTakeZakazInWork_Click(object sender, EventArgs e)
         {
             if (dataGridViewMain.SelectedItem != null)
             {
@@ -99,7 +105,7 @@ namespace CarpenterWorkshopWPF
             }
         }
 
-        private void buttonZayavkaReady_Click(object sender, EventArgs e)
+        private void buttonZakazReady_Click(object sender, EventArgs e)
         {
             if (dataGridViewMain.SelectedItem != null)
             {
@@ -116,7 +122,7 @@ namespace CarpenterWorkshopWPF
             }
         }
 
-        private void buttonPayZayavka_Click(object sender, EventArgs e)
+        private void buttonPayZakaz_Click(object sender, EventArgs e)
         {
             if (dataGridViewMain.SelectedItem != null)
             {
@@ -136,6 +142,61 @@ namespace CarpenterWorkshopWPF
         private void buttonRef_Click(object sender, EventArgs e)
         {
             LoadData();
+        }
+
+        private void прайсМебелиToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog sfd = new SaveFileDialog
+            {
+                Filter = "doc|*.doc|docx|*.docx"
+            };
+
+            if (sfd.ShowDialog() == true)
+            {
+
+                try
+                {
+
+                    reportService.SaveProductPrice(new ReportBindingModel
+                    {
+                        FileName = sfd.FileName
+                    });
+                    System.Windows.MessageBox.Show("Выполнено", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void загруженностьБазToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog sfd = new SaveFileDialog
+            {
+                Filter = "xls|*.xls|xlsx|*.xlsx"
+            };
+            if (sfd.ShowDialog() == true)
+            {
+                try
+                {
+                    reportService.SaveStoragesLoad(new ReportBindingModel
+                    {
+                        FileName = sfd.FileName
+                    });
+                    MessageBox.Show("Выполнено", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void заказыПолучателейToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var form = Container.Resolve<FormCustomerOrder>();
+            form.ShowDialog();
         }
     }
 }
