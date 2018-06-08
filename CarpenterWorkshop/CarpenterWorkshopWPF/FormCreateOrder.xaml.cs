@@ -1,61 +1,65 @@
-﻿using System;
+﻿using CarpenterWorkshopService.BindingModels;
+using CarpenterWorkshopService.ViewModels;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using CarpenterWorkshopService.BindingModels;
-using CarpenterWorkshopService.Intefaces;
-using CarpenterWorkshopService.ViewModels;
-using Unity;
-using Unity.Attributes;
+
 namespace CarpenterWorkshopWPF
 {
     /// <summary>
     /// Логика взаимодействия для FormCreateOrder.xaml
     /// </summary>
     public partial class FormCreateOrder : Window
-    {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
-        private readonly ICustomerService serviceP;
-
-        private readonly IWoodCraftService serviceM;
-
-        private readonly IMainService serviceG;
-
-
-        public FormCreateOrder(ICustomerService serviceP, IWoodCraftService serviceM, IMainService serviceG)
+    {       
+        public FormCreateOrder()
         {
             InitializeComponent();
             Loaded += FormCreateOrder_Load;
-            comboBoxCraft.SelectionChanged += comboBoxCraft_SelectedIndexChanged;
-
-            comboBoxCraft.SelectionChanged += new SelectionChangedEventHandler(comboBoxCraft_SelectedIndexChanged);
-            this.serviceP = serviceP;
-            this.serviceM = serviceM;
-            this.serviceG = serviceG;
+            comboBoxWoodCraft.SelectionChanged += comboBoxWoodCraft_SelectedIndexChanged;
+            comboBoxWoodCraft.SelectionChanged += new SelectionChangedEventHandler(comboBoxWoodCraft_SelectedIndexChanged);           
         }
 
         private void FormCreateOrder_Load(object sender, EventArgs e)
         {
             try
             {
-                List<CustomerViewModel> listP = serviceP.GetList();
-                if (listP != null)
+                var responseC = APIClient.GetRequest("api/Customer/GetList");
+                if (responseC.Result.IsSuccessStatusCode)
                 {
-                    comboBoxClient.DisplayMemberPath = "CustomerFIO";
-                    comboBoxClient.SelectedValuePath = "Id";
-                    comboBoxClient.ItemsSource = listP;
-                    comboBoxCraft.SelectedItem = null;
+                    List<CustomerViewModel> list = APIClient.GetElement<List<CustomerViewModel>>(responseC);
+                    if (list != null)
+                    {
+                        comboBoxClient.DisplayMemberPath = "CustomerFIO";
+                        comboBoxClient.SelectedValuePath = "Id";
+                        comboBoxClient.ItemsSource = list;
+                        comboBoxWoodCraft.SelectedItem = null;
+                    }
                 }
-                List<WoodCraftViewModel> listM = serviceM.GetList();
-                if (listM != null)
+                else
                 {
-                    comboBoxCraft.DisplayMemberPath = "WoodCraftsName";
-                    comboBoxCraft.SelectedValuePath = "Id";
-                    comboBoxCraft.ItemsSource = listM;
-                    comboBoxCraft.SelectedItem = null;
+                    throw new Exception(APIClient.GetError(responseC));
                 }
+                var responseP = APIClient.GetRequest("api/WoodCraft/GetList");
+                if (responseP.Result.IsSuccessStatusCode)
+                {
+                    List<WoodCraftViewModel> list = APIClient.GetElement<List<WoodCraftViewModel>>(responseP);
+                    if (list != null)
+                    {
+                        comboBoxWoodCraft.DisplayMemberPath = "WoodCraftsName";
+                        comboBoxWoodCraft.SelectedValuePath = "Id";
+                        comboBoxWoodCraft.ItemsSource = list;
+                        comboBoxWoodCraft.SelectedItem = null;
+                    }
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(responseP));
+                }
+
             }
             catch (Exception ex)
             {
@@ -65,14 +69,22 @@ namespace CarpenterWorkshopWPF
 
         private void CalcSum()
         {
-            if (comboBoxCraft.SelectedItem != null && !string.IsNullOrEmpty(textBoxCount.Text))
+            if (comboBoxWoodCraft.SelectedItem != null && !string.IsNullOrEmpty(textBoxCount.Text))
             {
                 try
                 {
-                    int id = ((WoodCraftViewModel)comboBoxCraft.SelectedItem).Id;
-                    WoodCraftViewModel product = serviceM.GetElement(id);
-                    int count = Convert.ToInt32(textBoxCount.Text);
-                    textBoxSum.Text = (count * product.Price).ToString();
+                    int id = ((WoodCraftViewModel)comboBoxWoodCraft.SelectedItem).Id;
+                    var responseP = APIClient.GetRequest("api/WoodCraft/Get/" + id);
+                    if (responseP.Result.IsSuccessStatusCode)
+                    {
+                        WoodCraftViewModel WoodCraft = APIClient.GetElement<WoodCraftViewModel>(responseP);
+                        int count = Convert.ToInt32(textBoxCount.Text);
+                        textBoxSum.Text = (count * (int)WoodCraft.Price).ToString();
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(responseP));
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -86,7 +98,7 @@ namespace CarpenterWorkshopWPF
             CalcSum();
         }
 
-        private void comboBoxCraft_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxWoodCraft_SelectedIndexChanged(object sender, EventArgs e)
         {
             CalcSum();
         }
@@ -103,23 +115,30 @@ namespace CarpenterWorkshopWPF
                 MessageBox.Show("Выберите получателя", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            if (comboBoxCraft.SelectedItem == null)
+            if (comboBoxWoodCraft.SelectedItem == null)
             {
-                MessageBox.Show("Выберите изделие", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Выберите мебель", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
             try
             {
-                serviceG.CreateOrder(new OrdProductBindingModel
+                 var response = APIClient.PostRequest("api/Main/CreateOrder", new OrdProductBindingModel
                 {
-                    CustomerID = ((CustomerViewModel)comboBoxClient.SelectedItem).Id,
-                    WoodCraftsID = ((WoodCraftViewModel)comboBoxCraft.SelectedItem).Id,
+                    CustomerID = Convert.ToInt32(comboBoxClient.SelectedValue),
+                    WoodCraftsID = Convert.ToInt32(comboBoxWoodCraft.SelectedValue),
                     Count = Convert.ToInt32(textBoxCount.Text),
                     Sum = Convert.ToInt32(textBoxSum.Text)
                 });
-                MessageBox.Show("Сохранение прошло успешно", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
-                DialogResult = true;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information);
+                    DialogResult = true;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {

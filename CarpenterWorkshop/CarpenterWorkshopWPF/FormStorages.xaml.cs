@@ -1,11 +1,14 @@
-﻿using System;
+﻿using CarpenterWorkshopService.BindingModels;
+using CarpenterWorkshopService.ViewModels;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using CarpenterWorkshopService.Intefaces;
-using CarpenterWorkshopService.ViewModels;
-using Unity;
-using Unity.Attributes;
+
+
 namespace CarpenterWorkshopWPF
 {
     /// <summary>
@@ -13,16 +16,11 @@ namespace CarpenterWorkshopWPF
     /// </summary>
     public partial class FormStorages : Window
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
-        private readonly IStorageService service;
-
-        public FormStorages(IStorageService service)
+       
+        public FormStorages()
         {
             InitializeComponent();
-            Loaded += FormStorages_Load;
-            this.service = service;
+            Loaded += FormStorages_Load;            
         }
 
         private void FormStorages_Load(object sender, EventArgs e)
@@ -34,12 +32,16 @@ namespace CarpenterWorkshopWPF
         {
             try
             {
-                List<StorageViewModel> list = service.GetList();
-                if (list != null)
+                var response = APIClient.GetRequest("api/Storage/GetList");
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    dataGridViewStorages.ItemsSource = list;
-                    dataGridViewStorages.Columns[0].Visibility = Visibility.Hidden;
-                    dataGridViewStorages.Columns[1].Width = DataGridLength.Auto;
+                    List<StorageViewModel> list = APIClient.GetElement<List<StorageViewModel>>(response);
+                    if (list != null)
+                    {
+                        dataGridViewStorages.ItemsSource = list;
+                        dataGridViewStorages.Columns[0].Visibility = Visibility.Hidden;
+                        dataGridViewStorages.Columns[1].Width = DataGridLength.Auto;
+                    }
                 }
             }
             catch (Exception ex)
@@ -50,7 +52,7 @@ namespace CarpenterWorkshopWPF
 
         private void buttonAdd_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormStorage>();
+            var form = new FormStorage();
             if (form.ShowDialog() == true)
                 LoadData();
         }
@@ -59,7 +61,7 @@ namespace CarpenterWorkshopWPF
         {
             if (dataGridViewStorages.SelectedItem != null)
             {
-                var form = Container.Resolve<FormStorage>();
+                var form = new FormStorage();
                 form.Id = ((StorageViewModel)dataGridViewStorages.SelectedItem).Id;
                 if (form.ShowDialog() == true)
                 {
@@ -78,7 +80,11 @@ namespace CarpenterWorkshopWPF
                     int id = ((StorageViewModel)dataGridViewStorages.SelectedItem).Id;
                     try
                     {
-                        service.DelElement(id);
+                        var response = APIClient.PostRequest("api/Storage/DelElement", new CustomerBidingModel { Id = id });
+                        if (!response.Result.IsSuccessStatusCode)
+                        {
+                            throw new Exception(APIClient.GetError(response));
+                        }
                     }
                     catch (Exception ex)
                     {

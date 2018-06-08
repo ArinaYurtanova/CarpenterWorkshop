@@ -1,31 +1,29 @@
-﻿using System;
-using System.Windows;
-using CarpenterWorkshopService.BindingModels;
-using CarpenterWorkshopService.Intefaces;
+﻿using CarpenterWorkshopService.BindingModels;
 using CarpenterWorkshopService.ViewModels;
-using Unity;
-using Unity.Attributes;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+
 namespace CarpenterWorkshopWPF
 {
     /// <summary>
     /// Логика взаимодействия для FormWorker.xaml
     /// </summary>
     public partial class FormWorker : Window
-    {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
+    {     
 
         public int Id { set { id = value; } }
 
-        private readonly IWorkerService service;
-
         private int? id;
 
-        public FormWorker(IWorkerService service)
+        public FormWorker()
         {
             InitializeComponent();
             Loaded += FormWorker_Load;
-            this.service = service;
         }
 
         private void FormWorker_Load(object sender, EventArgs e)
@@ -34,9 +32,16 @@ namespace CarpenterWorkshopWPF
             {
                 try
                 {
-                    WorkerVeiwModel view = service.GetElement(id.Value);
-                    if (view != null)
-                        textBoxFullName.Text = view.WorkerFIO;
+                    var response = APIClient.GetRequest("api/Worker/Get/" + id.Value);
+                    if (response.Result.IsSuccessStatusCode)
+                    {
+                        var Worker = APIClient.GetElement<WorkerVeiwModel>(response);
+                        textBoxFullName.Text = Worker.WorkerFIO;
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -54,9 +59,10 @@ namespace CarpenterWorkshopWPF
             }
             try
             {
+                Task<HttpResponseMessage> response;
                 if (id.HasValue)
                 {
-                    service.UpdElement(new WorkerBindingModel
+                    response = APIClient.PostRequest("api/Worker/UpdElement", new WorkerBindingModel
                     {
                         Id = id.Value,
                         WorkerFIO = textBoxFullName.Text
@@ -64,14 +70,21 @@ namespace CarpenterWorkshopWPF
                 }
                 else
                 {
-                    service.AddElement(new WorkerBindingModel
+                    response = APIClient.PostRequest("api/Worker/AddElement", new WorkerBindingModel
                     {
                         WorkerFIO = textBoxFullName.Text
                     });
                 }
-                MessageBox.Show("Сохранение прошло успешно", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
-                DialogResult = true;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information);
+                    DialogResult = true;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {

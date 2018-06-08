@@ -1,11 +1,12 @@
-﻿using System;
+﻿using CarpenterWorkshopService.BindingModels;
+using CarpenterWorkshopService.ViewModels;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using CarpenterWorkshopService.Intefaces;
-using CarpenterWorkshopService.ViewModels;
-using Unity;
-using Unity.Attributes;
 namespace CarpenterWorkshopWPF
 {
     /// <summary>
@@ -13,16 +14,11 @@ namespace CarpenterWorkshopWPF
     /// </summary>
     public partial class FormCustomers : Window
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
-        private readonly ICustomerService service;
-
-        public FormCustomers(ICustomerService service)
+       
+        public FormCustomers()
         {
             InitializeComponent();
             Loaded += FormCustomers_Load;
-            this.service = service;
         }
 
         private void FormCustomers_Load(object sender, EventArgs e)
@@ -34,12 +30,20 @@ namespace CarpenterWorkshopWPF
         {
             try
             {
-                List<CustomerViewModel> list = service.GetList();
-                if (list != null)
+                var response = APIClient.GetRequest("api/Customer/GetList");
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    dataGridViewCustomers.ItemsSource = list;
-                    dataGridViewCustomers.Columns[0].Visibility = Visibility.Hidden;
-                    dataGridViewCustomers.Columns[1].Width = DataGridLength.Auto;
+                    List<CustomerViewModel> list = APIClient.GetElement<List<CustomerViewModel>>(response);
+                    if (list != null)
+                    {
+                        dataGridViewCustomers.ItemsSource = list;
+                        dataGridViewCustomers.Columns[0].Visibility = Visibility.Hidden;
+                        dataGridViewCustomers.Columns[1].Width = DataGridLength.Auto;
+                    }
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)
@@ -50,7 +54,7 @@ namespace CarpenterWorkshopWPF
 
         private void buttonAdd_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormCustomer>();
+            var form = new FormCustomer();
             if (form.ShowDialog() == true)
             {
                 LoadData();
@@ -61,7 +65,7 @@ namespace CarpenterWorkshopWPF
         {
             if (dataGridViewCustomers.SelectedItem != null)
             {
-                var form = Container.Resolve<FormCustomer>();
+                var form = new FormCustomer();
                 form.Id = ((CustomerViewModel)dataGridViewCustomers.SelectedItem).Id;
                 if (form.ShowDialog() == true)
                 {
@@ -80,7 +84,11 @@ namespace CarpenterWorkshopWPF
                     int id = ((CustomerViewModel)dataGridViewCustomers.SelectedItem).Id;
                     try
                     {
-                        service.DelElement(id);
+                        var response = APIClient.PostRequest("api/Customer/DelElement", new CustomerBidingModel { Id = id });
+                        if (!response.Result.IsSuccessStatusCode)
+                        {
+                            throw new Exception(APIClient.GetError(response));
+                        }
                     }
                     catch (Exception ex)
                     {

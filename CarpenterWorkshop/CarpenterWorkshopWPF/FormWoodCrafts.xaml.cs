@@ -1,11 +1,14 @@
-﻿using System;
+﻿using CarpenterWorkshopService.BindingModels;
+using CarpenterWorkshopService.ViewModels;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using CarpenterWorkshopService.Intefaces;
-using CarpenterWorkshopService.ViewModels;
-using Unity;
-using Unity.Attributes;
+using System.Windows.Data;
+
 namespace CarpenterWorkshopWPF
 {
     /// <summary>
@@ -13,16 +16,11 @@ namespace CarpenterWorkshopWPF
     /// </summary>
     public partial class FormWoodCrafts : Window
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
-        private readonly IWoodCraftService service;
-
-        public FormWoodCrafts(IWoodCraftService service)
+       
+        public FormWoodCrafts()
         {
             InitializeComponent();
             Loaded += FormWoodCrafts_Load;
-            this.service = service;
         }
 
         private void FormWoodCrafts_Load(object sender, EventArgs e)
@@ -34,13 +32,21 @@ namespace CarpenterWorkshopWPF
         {
             try
             {
-                List<WoodCraftViewModel> list = service.GetList();
-                if (list != null)
+                var response = APIClient.GetRequest("api/WoodCraft/GetList");
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    dataGridViewCrafts.ItemsSource = list;
-                    dataGridViewCrafts.Columns[0].Visibility = Visibility.Hidden;
-                    dataGridViewCrafts.Columns[1].Width = DataGridLength.Auto;
-                    dataGridViewCrafts.Columns[3].Visibility = Visibility.Hidden;
+                    List<WoodCraftViewModel> list = APIClient.GetElement<List<WoodCraftViewModel>>(response);
+                    if (list != null)
+                    {
+                        dataGridViewWoodCrafts.ItemsSource = list;
+                        dataGridViewWoodCrafts.Columns[0].Visibility = Visibility.Hidden;
+                        dataGridViewWoodCrafts.Columns[1].Width = DataGridLength.Auto;
+                        dataGridViewWoodCrafts.Columns[3].Visibility = Visibility.Hidden;
+                    }
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)
@@ -51,17 +57,17 @@ namespace CarpenterWorkshopWPF
 
         private void buttonAdd_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormWoodCraft>();
+            var form = new FormWoodCraft();
             if (form.ShowDialog() == true)
                 LoadData();
         }
 
         private void buttonUpd_Click(object sender, EventArgs e)
         {
-            if (dataGridViewCrafts.SelectedItem != null)
+            if (dataGridViewWoodCrafts.SelectedItem != null)
             {
-                var form = Container.Resolve<FormWoodCraft>();
-                form.Id = ((WoodCraftViewModel)dataGridViewCrafts.SelectedItem).Id;
+                var form = new FormWoodCraft();
+                form.Id = ((WoodCraftViewModel)dataGridViewWoodCrafts.SelectedItem).Id;
                 if (form.ShowDialog() == true)
                     LoadData();
             }
@@ -69,16 +75,20 @@ namespace CarpenterWorkshopWPF
 
         private void buttonDel_Click(object sender, EventArgs e)
         {
-            if (dataGridViewCrafts.SelectedItem != null)
+            if (dataGridViewWoodCrafts.SelectedItem != null)
             {
                 if (MessageBox.Show("Удалить запись?", "Внимание",
                 MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
 
-                    int id = ((WoodCraftViewModel)dataGridViewCrafts.SelectedItem).Id;
+                    int id = ((WoodCraftViewModel)dataGridViewWoodCrafts.SelectedItem).Id;
                     try
                     {
-                        service.DelElement(id);
+                        var response = APIClient.PostRequest("api/WoodCraft/DelElement", new CustomerBidingModel { Id = id });
+                        if (!response.Result.IsSuccessStatusCode)
+                        {
+                            throw new Exception(APIClient.GetError(response));
+                        }
                     }
                     catch (Exception ex)
                     {

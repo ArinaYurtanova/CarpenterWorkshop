@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using CarpenterWorkshopService.BindingModels;
-using CarpenterWorkshopService.Intefaces;
 using CarpenterWorkshopService.ViewModels;
-using CarpenterWorkshopWpf;
 using Microsoft.Win32;
-using Unity;
-using Unity.Attributes;
 namespace CarpenterWorkshopWPF
 {
     /// <summary>
@@ -16,26 +15,21 @@ namespace CarpenterWorkshopWPF
     /// </summary>
     public partial class FormMain : Window
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
-        private readonly IMainService service;
-
-        private readonly IReportService reportService;
-
-        public FormMain(IMainService service, IReportService reportService)
+       
+        public FormMain()
         {
-            InitializeComponent();
-            this.service = service;
-            this.reportService = reportService;
+            InitializeComponent();          
         }
 
         private void LoadData()
         {
             try
             {
-                List<OrdProductViewModel> list = service.GetList();
-                if (list != null)
+                var response = APIClient.GetRequest("api/Main/GetList");
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    List<OrdProductViewModel> list = APIClient.GetElement<List<OrdProductViewModel>>(response);
+                    if (list != null)
                 {
                     dataGridViewMain.ItemsSource = list;
                     dataGridViewMain.Columns[0].Visibility = Visibility.Hidden;
@@ -43,6 +37,11 @@ namespace CarpenterWorkshopWPF
                     dataGridViewMain.Columns[3].Visibility = Visibility.Hidden;
                     dataGridViewMain.Columns[5].Visibility = Visibility.Hidden;
                     dataGridViewMain.Columns[1].Width = DataGridLength.Auto;
+                }
+            }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)
@@ -53,67 +52,77 @@ namespace CarpenterWorkshopWPF
 
         private void получателиToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormCustomers>();
+            var form = new FormCustomers();
             form.ShowDialog();
         }
 
         private void заготовкиToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormWoodBlanks>();
+            var form = new FormWoodBlanks();
             form.ShowDialog();
         }
 
         private void мебельToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormWoodCrafts>();
+            var form = new FormWoodCrafts();
             form.ShowDialog();
         }
 
         private void базыToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormStorages>();
+            var form = new FormStorages();
             form.ShowDialog();
         }
 
         private void рабочиеToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormWorkers>();
+            var form = new FormWorkers();
             form.ShowDialog();
         }
 
         private void пополнитьБазуToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormPutOnStorage>();
+            var form = new FormPutOnStorage();
             form.ShowDialog();
         }
 
-        private void buttonCreateZakaz_Click(object sender, EventArgs e)
+        private void buttonCreateOrder_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormCreateOrder>();
+            var form = new FormCreateOrder();
             form.ShowDialog();
             LoadData();
         }
 
-        private void buttonTakeZakazInWork_Click(object sender, EventArgs e)
+        private void buttonTakeOrderInWork_Click(object sender, EventArgs e)
         {
             if (dataGridViewMain.SelectedItem != null)
             {
-                var form = Container.Resolve<FormTakeOrderInWork>();
+                var form = new FormTakeOrderInWork();
                 form.Id = ((OrdProductViewModel)dataGridViewMain.SelectedItem).Id;
                 form.ShowDialog();
                 LoadData();
             }
         }
 
-        private void buttonZakazReady_Click(object sender, EventArgs e)
+        private void buttonZayavkaReady_Click(object sender, EventArgs e)
         {
             if (dataGridViewMain.SelectedItem != null)
             {
                 int id = ((OrdProductViewModel)dataGridViewMain.SelectedItem).Id;
                 try
                 {
-                    service.FinishOrder(id);
-                    LoadData();
+                    var response = APIClient.PostRequest("api/Main/FinishOrder", new OrdProductBindingModel
+                    {
+                        Id = id
+                    });
+                    if (response.Result.IsSuccessStatusCode)
+                    {
+                        LoadData();
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -122,15 +131,25 @@ namespace CarpenterWorkshopWPF
             }
         }
 
-        private void buttonPayZakaz_Click(object sender, EventArgs e)
+        private void buttonPayOrder_Click(object sender, EventArgs e)
         {
             if (dataGridViewMain.SelectedItem != null)
             {
                 int id = ((OrdProductViewModel)dataGridViewMain.SelectedItem).Id;
                 try
                 {
-                    service.PayOrder(id);
-                    LoadData();
+                   var response = APIClient.PostRequest("api/Main/PayOrder", new OrdProductBindingModel
+                    {
+                        Id = id
+                    });
+                    if (response.Result.IsSuccessStatusCode)
+                    {
+                        LoadData();
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -157,11 +176,18 @@ namespace CarpenterWorkshopWPF
                 try
                 {
 
-                    reportService.SaveProductPrice(new ReportBindingModel
+                    var response = APIClient.PostRequest("api/Report/SaveProductPrice", new ReportBindingModel
                     {
                         FileName = sfd.FileName
                     });
-                    System.Windows.MessageBox.Show("Выполнено", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                    if (response.Result.IsSuccessStatusCode)
+                    {
+                        MessageBox.Show("Выполнено", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -180,11 +206,18 @@ namespace CarpenterWorkshopWPF
             {
                 try
                 {
-                    reportService.SaveStoragesLoad(new ReportBindingModel
+                    var response = APIClient.PostRequest("api/Report/SaveStoragesLoad", new ReportBindingModel
                     {
                         FileName = sfd.FileName
                     });
-                    MessageBox.Show("Выполнено", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                    if (response.Result.IsSuccessStatusCode)
+                    {
+                        MessageBox.Show("Выполнено", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -195,7 +228,7 @@ namespace CarpenterWorkshopWPF
 
         private void заказыПолучателейToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormCustomerOrder>();
+            var form = new FormCustomerOrders();
             form.ShowDialog();
         }
     }

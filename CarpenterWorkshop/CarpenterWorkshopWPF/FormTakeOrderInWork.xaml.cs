@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Windows;
-using CarpenterWorkshopService.BindingModels;
-using CarpenterWorkshopService.Intefaces;
+﻿using CarpenterWorkshopService.BindingModels;
 using CarpenterWorkshopService.ViewModels;
-using Unity;
-using Unity.Attributes;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+
 
 namespace CarpenterWorkshopWPF
 {
@@ -13,24 +14,15 @@ namespace CarpenterWorkshopWPF
     /// Логика взаимодействия для FormTakeOrderInWork.xaml
     /// </summary>
     public partial class FormTakeOrderInWork : Window
-    {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
-        public int Id { set { id = value; } }
-
-        private readonly IWorkerService serviceR;
-
-        private readonly IMainService serviceG;
+    {       
+        public int Id { set { id = value; } }       
 
         private int? id;
 
-        public FormTakeOrderInWork(IWorkerService serviceR, IMainService serviceG)
+        public FormTakeOrderInWork()
         {
             InitializeComponent();
-            Loaded += FormTakeOrderInWork_Load;
-            this.serviceR = serviceR;
-            this.serviceG = serviceG;
+            Loaded += FormTakeOrderInWork_Load;          
         }
 
         private void FormTakeOrderInWork_Load(object sender, EventArgs e)
@@ -42,14 +34,22 @@ namespace CarpenterWorkshopWPF
                     MessageBox.Show("Не указана заявка", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                     Close();
                 }
-                List<WorkerVeiwModel> listR = serviceR.GetList();
-                if (listR != null)
+                var response = APIClient.GetRequest("api/Worker/GetList");
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    List<WorkerVeiwModel> list = APIClient.GetElement<List<WorkerVeiwModel>>(response);
+                    if (list != null)
                 {
                     comboBoxWorker.DisplayMemberPath = "WorkerFIO";
                     comboBoxWorker.SelectedValuePath = "Id";
-                    comboBoxWorker.ItemsSource = listR;
+                    comboBoxWorker.ItemsSource = list;
                     comboBoxWorker.SelectedItem = null;
 
+                }
+            }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)
@@ -67,14 +67,21 @@ namespace CarpenterWorkshopWPF
             }
             try
             {
-                serviceG.TakeOrderInWork(new OrdProductBindingModel
+                var response = APIClient.PostRequest("api/Main/TakeOrderInWork", new OrdProductBindingModel
                 {
                     Id = id.Value,
                     WorkerID = ((WorkerVeiwModel)comboBoxWorker.SelectedItem).Id,
                 });
-                MessageBox.Show("Сохранение прошло успешно", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
-                DialogResult = true;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information);
+                    DialogResult = true;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {

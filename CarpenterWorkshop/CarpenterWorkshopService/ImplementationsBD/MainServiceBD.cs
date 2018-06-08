@@ -143,7 +143,7 @@ namespace CarpenterWorkshopService.ImplementationsBD
             context.SaveChanges();
         }
 
-        public void PutComponentOnStock(StorageBlankBindingModel model)
+        public void  PutComponentOnStock(StorageBlankBindingModel model)
         {
             StorageBlank element = context.StorageBlanks
                                                 .FirstOrDefault(rec => rec.StorageID == model.StorageID &&

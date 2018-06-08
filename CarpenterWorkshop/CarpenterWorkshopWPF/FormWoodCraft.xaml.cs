@@ -1,36 +1,30 @@
 ﻿using CarpenterWorkshopService.BindingModels;
-using CarpenterWorkshopService.Intefaces;
 using CarpenterWorkshopService.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using Unity;
-using Unity.Attributes;
 namespace CarpenterWorkshopWPF
 {
     /// <summary>
     /// Логика взаимодействия для FormWoodCraft.xaml
     /// </summary>
     public partial class FormWoodCraft : Window
-    {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
+    {       
         public int Id { set { id = value; } }
-
-        private readonly IWoodCraftService service;
 
         private int? id;
 
-        private List<BlankCraftViewModel> BlankCrafts;
+        private List<BlankCraftViewModel> blankCrafts;
 
-        public FormWoodCraft(IWoodCraftService service)
+        public FormWoodCraft()
         {
             InitializeComponent();
-            Loaded += FormWoodCraft_Load;
-            this.service = service;
+            Loaded += FormWoodCraft_Load;          
         }
 
         private void FormWoodCraft_Load(object sender, EventArgs e)
@@ -39,13 +33,18 @@ namespace CarpenterWorkshopWPF
             {
                 try
                 {
-                    WoodCraftViewModel view = service.GetElement(id.Value);
-                    if (view != null)
+                    var response = APIClient.GetRequest("api/WoodCraft/Get/" + id.Value);
+                    if (response.Result.IsSuccessStatusCode)
                     {
-                        textBoxName.Text = view.WoodCraftsName;
-                        textBoxPrice.Text = view.Price.ToString();
-                        BlankCrafts = view.BlanksCrafts;
+                        var WoodCraft = APIClient.GetElement<WoodCraftViewModel>(response);
+                        textBoxName.Text = WoodCraft.WoodCraftsName;
+                        textBoxPrice.Text = WoodCraft.Price.ToString();
+                        blankCrafts = WoodCraft.BlanksCrafts;
                         LoadData();
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
                     }
                 }
                 catch (Exception ex)
@@ -54,21 +53,21 @@ namespace CarpenterWorkshopWPF
                 }
             }
             else
-                BlankCrafts = new List<BlankCraftViewModel>();
+                blankCrafts = new List<BlankCraftViewModel>();
         }
 
         private void LoadData()
         {
             try
             {
-                if (BlankCrafts != null)
+                if (blankCrafts != null)
                 {
-                    dataGridViewCraft.ItemsSource = null;
-                    dataGridViewCraft.ItemsSource = BlankCrafts;
-                    dataGridViewCraft.Columns[0].Visibility = Visibility.Hidden;
-                    dataGridViewCraft.Columns[1].Visibility = Visibility.Hidden;
-                    dataGridViewCraft.Columns[2].Visibility = Visibility.Hidden;
-                    dataGridViewCraft.Columns[3].Width = DataGridLength.Auto;
+                    dataGridViewWoodCraft.ItemsSource = null;
+                    dataGridViewWoodCraft.ItemsSource = blankCrafts;
+                    dataGridViewWoodCraft.Columns[0].Visibility = Visibility.Hidden;
+                    dataGridViewWoodCraft.Columns[1].Visibility = Visibility.Hidden;
+                    dataGridViewWoodCraft.Columns[2].Visibility = Visibility.Hidden;
+                    dataGridViewWoodCraft.Columns[3].Width = DataGridLength.Auto;
                 }
             }
             catch (Exception ex)
@@ -79,14 +78,14 @@ namespace CarpenterWorkshopWPF
 
         private void buttonAdd_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormBlankCraft>();
+            var form = new FormWoodBlankWoodCraft();
             if (form.ShowDialog() == true)
             {
                 if (form.Model != null)
                 {
                     if (id.HasValue)
                         form.Model.WoodCraftsID = id.Value;
-                    BlankCrafts.Add(form.Model);
+                    blankCrafts.Add(form.Model);
                 }
                 LoadData();
             }
@@ -94,13 +93,13 @@ namespace CarpenterWorkshopWPF
 
         private void buttonUpd_Click(object sender, EventArgs e)
         {
-            if (dataGridViewCraft.SelectedItem != null)
+            if (dataGridViewWoodCraft.SelectedItem != null)
             {
-                var form = Container.Resolve<FormBlankCraft>();
-                form.Model = BlankCrafts[dataGridViewCraft.SelectedIndex];
+                var form = new FormWoodBlankWoodCraft();
+                form.Model = blankCrafts[dataGridViewWoodCraft.SelectedIndex];
                 if (form.ShowDialog() == true)
                 {
-                    BlankCrafts[dataGridViewCraft.SelectedIndex] = form.Model;
+                    blankCrafts[dataGridViewWoodCraft.SelectedIndex] = form.Model;
                     LoadData();
                 }
             }
@@ -108,14 +107,14 @@ namespace CarpenterWorkshopWPF
 
         private void buttonDel_Click(object sender, EventArgs e)
         {
-            if (dataGridViewCraft.SelectedItem != null)
+            if (dataGridViewWoodCraft.SelectedItem != null)
             {
                 if (MessageBox.Show("Удалить запись?", "Внимание",
                     MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
                     try
                     {
-                        BlankCrafts.RemoveAt(dataGridViewCraft.SelectedIndex);
+                        blankCrafts.RemoveAt(dataGridViewWoodCraft.SelectedIndex);
                     }
                     catch (Exception ex)
                     {
@@ -143,7 +142,7 @@ namespace CarpenterWorkshopWPF
                 MessageBox.Show("Заполните цену", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            if (BlankCrafts == null || BlankCrafts.Count == 0)
+            if (blankCrafts == null || blankCrafts.Count == 0)
             {
                 MessageBox.Show("Заполните заготовки", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
@@ -151,19 +150,20 @@ namespace CarpenterWorkshopWPF
             try
             {
                 List<BlankCraftBindingModel> productComponentBM = new List<BlankCraftBindingModel>();
-                for (int i = 0; i < BlankCrafts.Count; ++i)
+                for (int i = 0; i < blankCrafts.Count; ++i)
                 {
                     productComponentBM.Add(new BlankCraftBindingModel
                     {
-                        Id = BlankCrafts[i].Id,
-                        WoodCraftsID = BlankCrafts[i].WoodCraftsID,
-                        WoodBlanksID = BlankCrafts[i].WoodBlanksID,
-                        Count = BlankCrafts[i].Count
+                        Id = blankCrafts[i].Id,
+                        WoodCraftsID = blankCrafts[i].WoodCraftsID,
+                        WoodBlanksID = blankCrafts[i].WoodBlanksID,
+                        Count = blankCrafts[i].Count
                     });
                 }
+                Task<HttpResponseMessage> response;
                 if (id.HasValue)
                 {
-                    service.UpdElement(new WoodCraftBindingModel
+                    response = APIClient.PostRequest("api/WoodCraft/UpdElement", new WoodCraftBindingModel
                     {
                         Id = id.Value,
                         WoodCraftsName = textBoxName.Text,
@@ -173,16 +173,23 @@ namespace CarpenterWorkshopWPF
                 }
                 else
                 {
-                    service.AddElement(new WoodCraftBindingModel
+                    response = APIClient.PostRequest("api/WoodCraft/AddElement", new WoodCraftBindingModel
                     {
                         WoodCraftsName = textBoxName.Text,
                         Price = Convert.ToInt32(textBoxPrice.Text),
                         BlanksCrafts = productComponentBM
                     });
                 }
-                MessageBox.Show("Сохранение прошло успешно", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
-                DialogResult = true;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information);
+                    DialogResult = true;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {

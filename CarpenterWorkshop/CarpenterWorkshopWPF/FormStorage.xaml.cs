@@ -1,11 +1,20 @@
 ﻿using CarpenterWorkshopService.BindingModels;
-using CarpenterWorkshopService.Intefaces;
 using CarpenterWorkshopService.ViewModels;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using Unity;
-using Unity.Attributes;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+
 namespace CarpenterWorkshopWPF
 {
     /// <summary>
@@ -13,20 +22,16 @@ namespace CarpenterWorkshopWPF
     /// </summary>
     public partial class FormStorage : Window
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
+       
         public int Id { set { id = value; } }
-
-        private readonly IStorageService service;
 
         private int? id;
 
-        public FormStorage(IStorageService service)
+        public FormStorage()
         {
             InitializeComponent();
             Loaded += FormStorage_Load;
-            this.service = service;
+          
         }
 
         private void FormStorage_Load(object sender, EventArgs e)
@@ -35,11 +40,12 @@ namespace CarpenterWorkshopWPF
             {
                 try
                 {
-                    StorageViewModel view = service.GetElement(id.Value);
-                    if (view != null)
+                    var response = APIClient.GetRequest("api/Storage/Get/" + id.Value);
+                    if (response.Result.IsSuccessStatusCode)
                     {
-                        textBoxName.Text = view.StorageName;
-                        dataGridViewStorage.ItemsSource = view.StorageBlanks;
+                        var Storage = APIClient.GetElement<StorageViewModel>(response);
+                        textBoxName.Text = Storage.StorageName;
+                        dataGridViewStorage.ItemsSource = Storage.StorageBlanks;
                         dataGridViewStorage.Columns[0].Visibility = Visibility.Hidden;
                         dataGridViewStorage.Columns[1].Visibility = Visibility.Hidden;
                         dataGridViewStorage.Columns[2].Visibility = Visibility.Hidden;
@@ -62,9 +68,10 @@ namespace CarpenterWorkshopWPF
             }
             try
             {
+                Task<HttpResponseMessage> response;
                 if (id.HasValue)
                 {
-                    service.UpdElement(new StorageBindingModel
+                    response = APIClient.PostRequest("api/Storage/UpdElement", new StorageBindingModel
                     {
                         Id = id.Value,
                         StorageName = textBoxName.Text
@@ -72,14 +79,21 @@ namespace CarpenterWorkshopWPF
                 }
                 else
                 {
-                    service.AddElement(new StorageBindingModel
+                    response = APIClient.PostRequest("api/Storage/AddElement", new StorageBindingModel
                     {
                         StorageName = textBoxName.Text
                     });
                 }
-                MessageBox.Show("Сохранение прошло успешно", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
-                DialogResult = true;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information);
+                    DialogResult = true;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {

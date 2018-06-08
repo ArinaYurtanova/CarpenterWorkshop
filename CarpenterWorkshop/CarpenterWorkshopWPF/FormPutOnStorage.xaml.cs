@@ -1,55 +1,58 @@
 ﻿using CarpenterWorkshopService.BindingModels;
-using CarpenterWorkshopService.Intefaces;
 using CarpenterWorkshopService.ViewModels;
 using System;
 using System.Collections.Generic;
+
 using System.Windows;
-using Unity;
-using Unity.Attributes;
+
 namespace CarpenterWorkshopWPF
 {
     /// <summary>
     /// Логика взаимодействия для FormPutOnStorage.xaml
     /// </summary>
     public partial class FormPutOnStorage : Window
-    {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
-        private readonly IStorageService serviceB;
-
-        private readonly IWoodBlankService serviceZ;
-
-        private readonly IMainService serviceG;
-
-        public FormPutOnStorage(IStorageService serviceB, IWoodBlankService serviceZ, IMainService serviceG)
+    {      
+        public FormPutOnStorage()
         {
             InitializeComponent();
-            Loaded += FormPutOnStorage_Load;
-            this.serviceB = serviceB;
-            this.serviceZ = serviceZ;
-            this.serviceG = serviceG;
+            Loaded += FormPutOnStorage_Load;        
         }
 
         private void FormPutOnStorage_Load(object sender, EventArgs e)
         {
             try
             {
-                List<WoodBlankViewModel> listZ = serviceZ.GetList();
-                if (listZ != null)
+                var responseC = APIClient.GetRequest("api/WoodBlank/GetList");
+                if (responseC.Result.IsSuccessStatusCode)
                 {
-                    comboBoxWoodBlanks.DisplayMemberPath = "WoodBlanksName";
-                    comboBoxWoodBlanks.SelectedValuePath = "Id";
-                    comboBoxWoodBlanks.ItemsSource = listZ;
-                    comboBoxWoodBlanks.SelectedItem = null;
+                    List<WoodBlankViewModel> list = APIClient.GetElement<List<WoodBlankViewModel>>(responseC);
+                    if (list != null)
+                {
+                    comboBoxWoodBlank.DisplayMemberPath = "WoodBlanksName";
+                    comboBoxWoodBlank.SelectedValuePath = "Id";
+                    comboBoxWoodBlank.ItemsSource = list;
+                    comboBoxWoodBlank.SelectedItem = null;
                 }
-                List<StorageViewModel> listB = serviceB.GetList();
-                if (listB != null)
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(responseC));
+                }
+                var responseS = APIClient.GetRequest("api/Storage/GetList");
+                if (responseS.Result.IsSuccessStatusCode)
+                {
+                    List<StorageViewModel> list = APIClient.GetElement<List<StorageViewModel>>(responseS);
+                    if (list != null)
                 {
                     comboBoxStorage.DisplayMemberPath = "StorageName";
                     comboBoxStorage.SelectedValuePath = "Id";
-                    comboBoxStorage.ItemsSource = listB;
+                    comboBoxStorage.ItemsSource = list;
                     comboBoxStorage.SelectedItem = null;
+                }
+            }
+                else
+                {
+                    throw new Exception(APIClient.GetError(responseC));
                 }
             }
             catch (Exception ex)
@@ -65,7 +68,7 @@ namespace CarpenterWorkshopWPF
                 MessageBox.Show("Заполните поле Количество", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            if (comboBoxWoodBlanks.SelectedItem == null)
+            if (comboBoxWoodBlank.SelectedItem == null)
             {
                 MessageBox.Show("Выберите заготовку", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
@@ -77,16 +80,22 @@ namespace CarpenterWorkshopWPF
             }
             try
             {
-                serviceG.PutComponentOnStock(new StorageBlankBindingModel
+                var response = APIClient.PostRequest("api/Main/PutComponentOnStock", new StorageBlankBindingModel
                 {
-                    WoodBlanksID = Convert.ToInt32(comboBoxWoodBlanks.SelectedValue),
+                    WoodBlanksID = Convert.ToInt32(comboBoxWoodBlank.SelectedValue),
                     StorageID = Convert.ToInt32(comboBoxStorage.SelectedValue),
                     Count = Convert.ToInt32(textBoxCount.Text)
                 });
-                MessageBox.Show("Сохранение прошло успешно", "Информация",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
-                DialogResult = true;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information);
+                    DialogResult =true;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {
