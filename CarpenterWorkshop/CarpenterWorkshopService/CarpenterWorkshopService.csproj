@@ -51,6 +51,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
@@ -61,6 +62,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BindingModels\MessageInfoBindingModel.cs" />
+    <Compile Include="ImplementationsBD\MessageInfoServiceBD.cs" />
+    <Compile Include="Intefaces\IMessageInfoService.cs" />
     <Compile Include="AbstractDbContext.cs" />
     <Compile Include="BindingModels\BlankCraftBindingModel.cs" />
     <Compile Include="BindingModels\CustomerBindingModel.cs" />
@@ -92,9 +96,9 @@
     <Compile Include="Intefaces\IWorkerService.cs" />
     <Compile Include="Intefaces\IWoodBlankService.cs" />
     <Compile Include="Intefaces\IWoodCraftService.cs" />
-    <Compile Include="Migrations\201803100855140_FirstMigration.cs" />
-    <Compile Include="Migrations\201803100855140_FirstMigration.Designer.cs">
-      <DependentUpon>201803100855140_FirstMigration.cs</DependentUpon>
+    <Compile Include="Migrations\201805190637469_FirstMigration.cs" />
+    <Compile Include="Migrations\201805190637469_FirstMigration.Designer.cs">
+      <DependentUpon>201805190637469_FirstMigration.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -105,6 +109,7 @@
     <Compile Include="ViewModels\BlankCraftViewModel.cs" />
     <Compile Include="ViewModels\CustomerOrdersModel.cs" />
     <Compile Include="ViewModels\CustomerViewModel.cs" />
+    <Compile Include="ViewModels\MessageInfoViewModel.cs" />
     <Compile Include="ViewModels\OrdProductViewModel.cs" />
     <Compile Include="ViewModels\StorageBlankViewModel.cs" />
     <Compile Include="ViewModels\StoragesLoadViewModel.cs" />
@@ -125,8 +130,8 @@
     <None Include="Resources\TIMCYR.TTF" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201803100855140_FirstMigration.resx">
-      <DependentUpon>201803100855140_FirstMigration.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201805190637469_FirstMigration.resx">
+      <DependentUpon>201805190637469_FirstMigration.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

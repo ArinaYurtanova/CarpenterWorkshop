@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 
 namespace CarpenterWorkshopService
 {
-    [Table("AbstractDatabase")]
+    
     public class AbstractDbContext : DbContext
     {
-        public AbstractDbContext()
+        public AbstractDbContext() : base("AbstractDatabase1")
         {
             //настройки конфигурации для entity
             Configuration.ProxyCreationEnabled = false;
@@ -35,6 +35,12 @@ namespace CarpenterWorkshopService
         public virtual DbSet<Storage> Storages { get; set; }
 
         public virtual DbSet<StorageBlank> StorageBlanks { get; set; }
+
+        public virtual DbSet<MessageInfo> MessageInfos { get; set; }
+        /// <summary>
+        /// Перегружаем метод созранения изменений. Если возникла ошибка - очищаем все изменения
+        /// </summary>
+        /// <returns></returns>
         public override int SaveChanges()
         {
             try
@@ -63,6 +69,3 @@ namespace CarpenterWorkshopService
         }
     }
 }
-      
-    
-

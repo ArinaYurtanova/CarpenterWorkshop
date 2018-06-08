@@ -14,7 +14,7 @@ namespace CarpenterWorkshopService.ImplementationsBD
     {
         private AbstractDbContext context;
 
-        public CustomerServiceBD(AbstractDbContext context)
+        public CustomerServiceBD( AbstractDbContext context)
         {
             this.context = context;
         }
@@ -25,7 +25,8 @@ namespace CarpenterWorkshopService.ImplementationsBD
                 .Select(rec => new CustomerViewModel
                 {
                     Id = rec.Id,
-                    CustomerFIO = rec.CustomerFIO
+                    CustomerFIO = rec.CustomerFIO,
+                    Mail = rec.Mail
                 })
                 .ToList();
             return result;
@@ -39,12 +40,22 @@ namespace CarpenterWorkshopService.ImplementationsBD
                 return new CustomerViewModel
                 {
                     Id = element.Id,
-                    CustomerFIO = element.CustomerFIO
+                    CustomerFIO = element.CustomerFIO,
+                    Mail = element.Mail,
+                    Messages = context.MessageInfos
+                            .Where(recM => recM.CustomerID == element.Id)
+                            .Select(recM => new MessageInfoViewModel
+                            {
+                                MessageId = recM.MessageId,
+                                DateDelivery = recM.DateDelivery,
+                                Subject = recM.Subject,
+                                Body = recM.Body
+                            })
+                            .ToList()
                 };
             }
             throw new Exception("Элемент не найден");
         }
-
         public void AddElement(CustomerBidingModel model)
         {
             Сustomer element = context.Customers.FirstOrDefault(rec => rec.CustomerFIO == model.CustomerFIO);
@@ -54,7 +65,8 @@ namespace CarpenterWorkshopService.ImplementationsBD
             }
             context.Customers.Add(new Сustomer
             {
-                CustomerFIO = model.CustomerFIO
+                CustomerFIO = model.CustomerFIO,
+                Mail = model.Mail
             });
             context.SaveChanges();
         }
@@ -73,6 +85,7 @@ namespace CarpenterWorkshopService.ImplementationsBD
                 throw new Exception("Элемент не найден");
             }
             element.CustomerFIO = model.CustomerFIO;
+            element.Mail = model.Mail;
             context.SaveChanges();
         }
 

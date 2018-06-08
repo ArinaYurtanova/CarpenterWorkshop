@@ -14,7 +14,7 @@ namespace CarpenterWorkshopService.ImplementationsBD
     {
         private AbstractDbContext context;
 
-        public StorageServiceBD(AbstractDbContext context)
+        public StorageServiceBD( AbstractDbContext context)
         {
             this.context = context;
         }

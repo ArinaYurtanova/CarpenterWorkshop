@@ -1,5 +1,6 @@
 using CarpenterWorkshopService;
 using CarpenterWorkshopService.ImplementationsBD;
+using CarpenterWorkshopService.ImplementationsList;
 using CarpenterWorkshopService.Intefaces;
 using System;
 using System.Data.Entity;
@@ -54,7 +55,7 @@ namespace CarpenterWorkshopRestApi
             container.RegisterType<IStorageService, StorageServiceBD>(new HierarchicalLifetimeManager());
             container.RegisterType<IMainService, MainServiceBD>(new HierarchicalLifetimeManager());
             container.RegisterType<IReportService, ReportServiceBD>(new HierarchicalLifetimeManager());
-
+            container.RegisterType<IMessageInfoService, MessageInfoServiceBD>(new HierarchicalLifetimeManager());
         }
     }
 }

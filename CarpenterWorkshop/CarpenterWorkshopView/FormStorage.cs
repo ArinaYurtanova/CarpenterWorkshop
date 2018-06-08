@@ -33,9 +33,9 @@ namespace CarpenterWorkshopView
             {
                 try
                 {
-                    var Storage = Task.Run(() => APIClient.GetRequestData<StorageViewModel>("api/Storage/Get/" + id.Value)).Result;
-                    textBoxName.Text = Storage.StorageName;
-                    dataGridView.DataSource = Storage.StorageBlanks;
+                    var storage = Task.Run(() => APIClient.GetRequestData<StorageViewModel>("api/Storage/Get/" + id.Value)).Result;
+                    textBoxName.Text = storage.StorageName;
+                    dataGridView.DataSource = storage.StorageBlanks;
                     dataGridView.Columns[0].Visible = false;
                     dataGridView.Columns[1].Visible = false;
                     dataGridView.Columns[2].Visible = false;

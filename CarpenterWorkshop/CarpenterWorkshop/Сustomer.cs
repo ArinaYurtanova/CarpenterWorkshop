@@ -14,7 +14,10 @@ namespace CarpenterWorkshop
         public int Id { get; set; }
         [Required]
         public string CustomerFIO { get; set; }
+        public string Mail { get; set; }
         [ForeignKey("CustomerID")]
         public virtual List<OrdProduct> OrdProducts { get; set; }
+        [ForeignKey("CustomerID")] 
+        public virtual List<MessageInfo> MessageInfos { get; set; }
     }
 }

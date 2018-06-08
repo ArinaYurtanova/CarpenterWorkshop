@@ -31,7 +31,7 @@ namespace CarpenterWorkshopView
         {
             try
             {
-                List<WoodBlankViewModel> list = Task.Run(() => APIClient.GetRequestData<List<WoodBlankViewModel>>("api/WoodBlank/GetList")).Result;
+                List<WoodCraftViewModel> list = Task.Run(() => APIClient.GetRequestData<List<WoodCraftViewModel>>("api/WoodCraft/GetList")).Result;
                 if (list != null)
                 {
                     dataGridView.DataSource = list;
@@ -51,7 +51,7 @@ namespace CarpenterWorkshopView
 
         private void buttonAdd_Click(object sender, EventArgs e)
         {
-            var form = new FormWoodBlank();
+            var form = new FormWoodCraft();
             form.ShowDialog();
         }
 
@@ -59,7 +59,7 @@ namespace CarpenterWorkshopView
         {
             if (dataGridView.SelectedRows.Count == 1)
             {
-                var form = new FormWoodBlank
+                var form = new FormWoodCraft
                 {
                     Id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value)
                 };
@@ -75,7 +75,7 @@ namespace CarpenterWorkshopView
                 {
                     int id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
 
-                    Task task = Task.Run(() => APIClient.PostRequestData("api/WoodBlank/DelElement", new CustomerBidingModel { Id = id }));
+                    Task task = Task.Run(() => APIClient.PostRequestData("api/WoodCraft/DelElement", new CustomerBidingModel { Id = id }));
 
                     task.ContinueWith((prevTask) => MessageBox.Show("Запись удалена. Обновите список", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information),
                     TaskContinuationOptions.OnlyOnRanToCompletion);

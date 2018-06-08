@@ -8,15 +8,21 @@ using System.Threading.Tasks;
 namespace CarpenterWorkshopService.ViewModels
 {
     [DataContract]
-    public class CustomerViewModel
+    public class MessageInfoViewModel
     {
         [DataMember]
-        public int Id { get; set; }
+        public string MessageId { get; set; }
+
         [DataMember]
-        public string CustomerFIO { get; set; }
+        public string CustomerName { get; set; }
+
         [DataMember]
-        public string Mail { get; set; }
+        public DateTime DateDelivery { get; set; }
+
         [DataMember]
-        public List<MessageInfoViewModel> Messages { get; set; }
+        public string Subject { get; set; }
+
+        [DataMember]
+        public string Body { get; set; }
     }
 }

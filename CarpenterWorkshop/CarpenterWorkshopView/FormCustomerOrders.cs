@@ -38,7 +38,7 @@ namespace CarpenterWorkshopView
                                             " по " + dateTimePickerTo.Value.ToShortDateString());
                 reportViewer.LocalReport.SetParameters(parameter);
 
-                var dataSource = Task.Run(() => APIClient.PostRequestData<ReportBindingModel, List<CustomerOrdersModel>>("api/Report/GetClientOrders",
+                var dataSource = Task.Run(() => APIClient.PostRequestData<ReportBindingModel, List<CustomerOrdersModel>>("api/Report/GetCustomerOrders",
                     new ReportBindingModel
                     {
                         DateFrom = dateTimePickerFrom.Value,
@@ -73,7 +73,7 @@ namespace CarpenterWorkshopView
             if (sfd.ShowDialog() == DialogResult.OK)
             {
                 string fileName = sfd.FileName;
-                Task task = Task.Run(() => APIClient.PostRequestData("api/Report/SaveClientOrders", new ReportBindingModel
+                Task task = Task.Run(() => APIClient.PostRequestData("api/Report/SaveCustomerOrders", new ReportBindingModel
                 {
                     FileName = fileName,
                     DateFrom = dateTimePickerFrom.Value,

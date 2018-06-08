@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
@@ -167,7 +167,7 @@ namespace CarpenterWorkshopView
             if (sfd.ShowDialog() == DialogResult.OK)
             {
                 string fileName = sfd.FileName;
-                Task task = Task.Run(() => APIClient.PostRequestData("api/Report/SaveWoodCraftPrice", new ReportBindingModel
+                Task task = Task.Run(() => APIClient.PostRequestData("api/Report/SaveProductPrice", new ReportBindingModel
                 {
                     FileName = fileName
                 }));
@@ -198,5 +198,10 @@ namespace CarpenterWorkshopView
             var form = new FormCustomerOrders();
             form.ShowDialog();
         }
-    }
+        private void письмаToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var form = new FormMails();
+            form.ShowDialog();
+        }
+}
 }
