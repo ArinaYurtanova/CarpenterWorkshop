@@ -1,5 +1,6 @@
 ﻿using CarpenterWorkshopService.BindingModels;
 using CarpenterWorkshopService.ViewModels;
+using CarpenterWorkshopView;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,12 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace CarpenterWorkshopWPF
 {
@@ -37,24 +32,20 @@ namespace CarpenterWorkshopWPF
         {
             try
             {
-                var response = APIClient.GetRequest("api/WoodBlank/GetList");
-                if (response.Result.IsSuccessStatusCode)
-                {
-                    List<WoodBlankViewModel> list = APIClient.GetElement<List<WoodBlankViewModel>>(response);
-                    if (list != null)
+                List<WoodBlankViewModel> list = Task.Run(() => APIClient.GetRequestData<List<WoodBlankViewModel>>("api/WoodBlank/GetList")).Result;
+                if (list != null)
                 {
                     dataGridViewWoodBlanks.ItemsSource = list;
                     dataGridViewWoodBlanks.Columns[0].Visibility = Visibility.Hidden;
                     dataGridViewWoodBlanks.Columns[1].Width = DataGridLength.Auto;
-                }
-            }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
-                }
+                }            
             }
             catch (Exception ex)
             {
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -85,19 +76,20 @@ namespace CarpenterWorkshopWPF
                     MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
                     int id = ((WoodBlankViewModel)dataGridViewWoodBlanks.SelectedItem).Id;
-                    try
+                    Task task = Task.Run(() => APIClient.PostRequestData("api/WoodBlank/DelElement", new CustomerBidingModel { Id = id }));
+
+                    task.ContinueWith((prevTask) => MessageBox.Show("Запись удалена. Обновите список", "Успех", MessageBoxButton.OK, MessageBoxImage.Information),
+                    TaskContinuationOptions.OnlyOnRanToCompletion);
+
+                    task.ContinueWith((prevTask) =>
                     {
-                        var response = APIClient.PostRequest("api/WoodBlank/DelElement", new CustomerBidingModel { Id = id });
-                        if (!response.Result.IsSuccessStatusCode)
+                        var ex = (Exception)prevTask.Exception;
+                        while (ex.InnerException != null)
                         {
-                            throw new Exception(APIClient.GetError(response));
+                            ex = ex.InnerException;
                         }
-                    }
-                    catch (Exception ex)
-                    {
                         MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                    LoadData();
+                    }, TaskContinuationOptions.OnlyOnFaulted);
                 }
             }
         }

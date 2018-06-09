@@ -1,8 +1,11 @@
 ﻿using CarpenterWorkshopService.BindingModels;
 using CarpenterWorkshopService.ViewModels;
+using CarpenterWorkshopView;
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace CarpenterWorkshopWPF
@@ -22,38 +25,22 @@ namespace CarpenterWorkshopWPF
         {
             try
             {
-                var responseC = APIClient.GetRequest("api/WoodBlank/GetList");
-                if (responseC.Result.IsSuccessStatusCode)
-                {
-                    List<WoodBlankViewModel> list = APIClient.GetElement<List<WoodBlankViewModel>>(responseC);
-                    if (list != null)
+                List<WoodBlankViewModel> listC = Task.Run(() => APIClient.GetRequestData<List<WoodBlankViewModel>>("api/WoodBlank/GetList")).Result;
+                if (listC != null)
                 {
                     comboBoxWoodBlank.DisplayMemberPath = "WoodBlanksName";
                     comboBoxWoodBlank.SelectedValuePath = "Id";
-                    comboBoxWoodBlank.ItemsSource = list;
+                    comboBoxWoodBlank.ItemsSource = listC;
                     comboBoxWoodBlank.SelectedItem = null;
                 }
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(responseC));
-                }
-                var responseS = APIClient.GetRequest("api/Storage/GetList");
-                if (responseS.Result.IsSuccessStatusCode)
-                {
-                    List<StorageViewModel> list = APIClient.GetElement<List<StorageViewModel>>(responseS);
-                    if (list != null)
+                List<StorageViewModel> listS = Task.Run(() => APIClient.GetRequestData<List<StorageViewModel>>("api/Storage/GetList")).Result;
+                if (listS != null)
                 {
                     comboBoxStorage.DisplayMemberPath = "StorageName";
                     comboBoxStorage.SelectedValuePath = "Id";
-                    comboBoxStorage.ItemsSource = list;
+                    comboBoxStorage.ItemsSource = listS;
                     comboBoxStorage.SelectedItem = null;
-                }
-            }
-                else
-                {
-                    throw new Exception(APIClient.GetError(responseC));
-                }
+                }            
             }
             catch (Exception ex)
             {
@@ -80,25 +67,36 @@ namespace CarpenterWorkshopWPF
             }
             try
             {
-                var response = APIClient.PostRequest("api/Main/PutComponentOnStock", new StorageBlankBindingModel
+                int WoodBlanksID = Convert.ToInt32(comboBoxWoodBlank.SelectedValue);
+                int StorageID = Convert.ToInt32(comboBoxStorage.SelectedValue);
+                int count = Convert.ToInt32(textBoxCount.Text);
+                Task task = Task.Run(() => APIClient.PostRequestData("api/Main/PutComponentOnStock", new StorageBlankBindingModel
                 {
-                    WoodBlanksID = Convert.ToInt32(comboBoxWoodBlank.SelectedValue),
-                    StorageID = Convert.ToInt32(comboBoxStorage.SelectedValue),
-                    Count = Convert.ToInt32(textBoxCount.Text)
-                });
-                if (response.Result.IsSuccessStatusCode)
+                    WoodBlanksID = WoodBlanksID,
+                    StorageID = StorageID,
+                    Count = count
+                }));
+
+                task.ContinueWith((prevTask) => MessageBox.Show("База пополнен", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information),
+                    TaskContinuationOptions.OnlyOnRanToCompletion);
+                task.ContinueWith((prevTask) =>
                 {
-                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information);
-                    DialogResult =true;
-                    Close();
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
-                }
+                    var ex = (Exception)prevTask.Exception;
+                    while (ex.InnerException != null)
+                    {
+                        ex = ex.InnerException;
+                    }
+                    MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }, TaskContinuationOptions.OnlyOnFaulted);
+
+                Close();
             }
             catch (Exception ex)
             {
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }

@@ -1,5 +1,6 @@
 ﻿using CarpenterWorkshopService.BindingModels;
 using CarpenterWorkshopService.ViewModels;
+using CarpenterWorkshopView;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 
 namespace CarpenterWorkshopWPF
 {
@@ -32,25 +32,21 @@ namespace CarpenterWorkshopWPF
         {
             try
             {
-                var response = APIClient.GetRequest("api/WoodCraft/GetList");
-                if (response.Result.IsSuccessStatusCode)
-                {
-                    List<WoodCraftViewModel> list = APIClient.GetElement<List<WoodCraftViewModel>>(response);
-                    if (list != null)
+                List<WoodCraftViewModel> list = Task.Run(() => APIClient.GetRequestData<List<WoodCraftViewModel>>("api/WoodCraft/GetList")).Result;
+                if (list != null)
                     {
                         dataGridViewWoodCrafts.ItemsSource = list;
                         dataGridViewWoodCrafts.Columns[0].Visibility = Visibility.Hidden;
                         dataGridViewWoodCrafts.Columns[1].Width = DataGridLength.Auto;
                         dataGridViewWoodCrafts.Columns[3].Visibility = Visibility.Hidden;
-                    }
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
-                }
+                    }               
             }
             catch (Exception ex)
             {
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -82,23 +78,24 @@ namespace CarpenterWorkshopWPF
                 {
 
                     int id = ((WoodCraftViewModel)dataGridViewWoodCrafts.SelectedItem).Id;
-                    try
+
+                    Task task = Task.Run(() => APIClient.PostRequestData("api/WoodCraft/DelElement", new CustomerBidingModel { Id = id }));
+
+                    task.ContinueWith((prevTask) => MessageBox.Show("Запись удалена. Обновите список", "Успех", MessageBoxButton.OK, MessageBoxImage.Information),
+                    TaskContinuationOptions.OnlyOnRanToCompletion);
+
+                    task.ContinueWith((prevTask) =>
                     {
-                        var response = APIClient.PostRequest("api/WoodCraft/DelElement", new CustomerBidingModel { Id = id });
-                        if (!response.Result.IsSuccessStatusCode)
+                        var ex = (Exception)prevTask.Exception;
+                        while (ex.InnerException != null)
                         {
-                            throw new Exception(APIClient.GetError(response));
+                            ex = ex.InnerException;
                         }
-                    }
-                    catch (Exception ex)
-                    {
                         MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                    LoadData();
+                    }, TaskContinuationOptions.OnlyOnFaulted);
                 }
             }
         }
-
         private void buttonRef_Click(object sender, EventArgs e)
         {
             LoadData();
