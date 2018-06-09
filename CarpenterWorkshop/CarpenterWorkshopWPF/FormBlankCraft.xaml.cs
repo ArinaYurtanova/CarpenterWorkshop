@@ -1,15 +1,16 @@
-﻿using CarpenterWorkshopService.BindingModels;
-using CarpenterWorkshopService.ViewModels;
+﻿using CarpenterWorkshopService.ViewModels;
+using CarpenterWorkshopView;
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
-
 
 namespace CarpenterWorkshopWPF
 {
     /// <summary>
-    /// Логика взаимодействия для FormWoodBlankWoodCraft.xaml
+    /// Логика взаимодействия для FormBlankCraft.xaml
     /// </summary>
     public partial class FormBlankCraft : Window
     {     
@@ -26,22 +27,19 @@ namespace CarpenterWorkshopWPF
         private void FormBlankCraft_Load(object sender, EventArgs e)
         {           
             try
-            {
-                var response = APIClient.GetRequest("api/WoodBlank/GetList");
-                if (response.Result.IsSuccessStatusCode)
-                {
-                    comboBoxWoodBlank.DisplayMemberPath = "WoodBlanksName";
-                    comboBoxWoodBlank.SelectedValuePath = "Id";
-                    comboBoxWoodBlank.ItemsSource = APIClient.GetElement<List<WoodBlankViewModel>>(response);
-                    comboBoxWoodBlank.SelectedItem = null;
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
-                }
+            {              
+                comboBoxWoodBlank.DisplayMemberPath = "WoodBlanksName";
+                comboBoxWoodBlank.SelectedValuePath = "Id";
+                comboBoxWoodBlank.ItemsSource = Task.Run(() => APIClient.GetRequestData<List<WoodBlankViewModel>>("api/WoodBlank/GetList")).Result;
+                comboBoxWoodBlank.SelectedItem = null;
+               
             }
             catch (Exception ex)
             {
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 

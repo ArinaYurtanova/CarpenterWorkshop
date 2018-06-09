@@ -31,47 +31,39 @@ namespace CarpenterWorkshopView
         {
             try
             {
-                var response = APIClient.GetRequest("api/WoodCraft/GetList");
-                if (response.Result.IsSuccessStatusCode)
+                List<WoodBlankViewModel> list = Task.Run(() => APIClient.GetRequestData<List<WoodBlankViewModel>>("api/WoodBlank/GetList")).Result;
+                if (list != null)
                 {
-                    List<WoodCraftViewModel> list = APIClient.GetElement<List<WoodCraftViewModel>>(response);
-                    if (list != null)
-                    {
-                        dataGridView.DataSource = list;
-                        dataGridView.Columns[0].Visible = false;
-                        dataGridView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-                    }
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
+                    dataGridView.DataSource = list;
+                    dataGridView.Columns[0].Visible = false;
+                    dataGridView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                 }
             }
             catch (Exception ex)
             {
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void buttonAdd_Click(object sender, EventArgs e)
         {
-            var form = new FormWoodCraft();
-            if (form.ShowDialog() == DialogResult.OK)
-            {
-                LoadData();
-            }
+            var form = new FormWoodBlank();
+            form.ShowDialog();
         }
 
         private void buttonUpd_Click(object sender, EventArgs e)
         {
             if (dataGridView.SelectedRows.Count == 1)
             {
-                var form = new FormWoodCraft();
-                form.Id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
-                if (form.ShowDialog() == DialogResult.OK)
+                var form = new FormWoodBlank
                 {
-                    LoadData();
-                }
+                    Id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value)
+                };
+                form.ShowDialog();
             }
         }
 
@@ -82,19 +74,21 @@ namespace CarpenterWorkshopView
                 if (MessageBox.Show("Удалить запись", "Вопрос", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     int id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
-                    try
+
+                    Task task = Task.Run(() => APIClient.PostRequestData("api/WoodBlank/DelElement", new CustomerBidingModel { Id = id }));
+
+                    task.ContinueWith((prevTask) => MessageBox.Show("Запись удалена. Обновите список", "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information),
+                    TaskContinuationOptions.OnlyOnRanToCompletion);
+
+                    task.ContinueWith((prevTask) =>
                     {
-                        var response = APIClient.PostRequest("api/WoodCraft/DelElement", new CustomerBidingModel { Id = id });
-                        if (!response.Result.IsSuccessStatusCode)
+                        var ex = (Exception)prevTask.Exception;
+                        while (ex.InnerException != null)
                         {
-                            throw new Exception(APIClient.GetError(response));
+                            ex = ex.InnerException;
                         }
-                    }
-                    catch (Exception ex)
-                    {
                         MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                    LoadData();
+                    }, TaskContinuationOptions.OnlyOnFaulted);
                 }
             }
         }

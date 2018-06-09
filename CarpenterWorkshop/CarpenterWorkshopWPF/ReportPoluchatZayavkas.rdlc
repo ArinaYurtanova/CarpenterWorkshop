@@ -2,7 +2,7 @@
 <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
   <AutoRefresh>0</AutoRefresh>
   <DataSources>
-    <DataSource Name="WoodCraftFactoryServiceViewModel">
+    <DataSource Name="CarpenterWorkshopServiceViewModel">
       <ConnectionProperties>
         <DataProvider>System.Data.DataSet</DataProvider>
         <ConnectString>/* Local Connection */</ConnectString>
@@ -13,7 +13,7 @@
   <DataSets>
     <DataSet Name="DataSetZayavkas">
       <Query>
-        <DataSourceName>WoodCraftFactoryServiceViewModel</DataSourceName>
+        <DataSourceName>CarpenterWorkshopServiceViewModel</DataSourceName>
         <CommandText>/* Local Query */</CommandText>
       </Query>
       <Fields>
@@ -43,9 +43,9 @@
         </Field>
       </Fields>
       <rd:DataSetInfo>
-        <rd:DataSetName>WoodCraftFactoryService.ViewModel</rd:DataSetName>
-        <rd:TableName>CustomerOrdersModel</rd:TableName>
-        <rd:ObjectDataSourceType>WoodCraftFactoryService.ViewModel.CustomerOrdersModel, WoodCraftFactoryService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</rd:ObjectDataSourceType>
+        <rd:DataSetName>CarpenterWorkshopService.ViewModel</rd:DataSetName>
+        <rd:TableName>CustomerOrderModel</rd:TableName>
+        <rd:ObjectDataSourceType>CarpenterWorkshopService.ViewModel.CustomerOrderModel, CarpenterWorkshopService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</rd:ObjectDataSourceType>
       </rd:DataSetInfo>
     </DataSet>
   </DataSets>

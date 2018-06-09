@@ -1,6 +1,4 @@
 ﻿
-using CarpenterWorkshopService.BindingModels;
-using CarpenterWorkshopService.ViewModels;
 using Microsoft.Reporting.WinForms;
 using Microsoft.Win32;
 using System;
@@ -16,6 +14,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using CarpenterWorkshopService.BindingModels;
+using CarpenterWorkshopView;
+using CarpenterWorkshopService.ViewModels;
+
 namespace CarpenterWorkshopWPF
 {
     /// <summary>
@@ -45,22 +47,16 @@ namespace CarpenterWorkshopWPF
                 reportViewer.LocalReport.SetParameters(parameter);
 
 
-                var response = APIClient.PostRequest("api/Report/GetCustomerZayavkas", new ReportBindingModel
-                {
-                    DateFrom = dateTimePickerFrom.SelectedDate,
-                    DateTo = dateTimePickerTo.SelectedDate
-                });
-                if (response.Result.IsSuccessStatusCode)
-                {
-                    var dataSource = APIClient.GetElement<List<CustomerOrdersModel>>(response);
+                var dataSource = Task.Run(() => APIClient.PostRequestData<ReportBindingModel, List<CustomerOrdersModel>>("api/Report/GetCustomerZayavkas",
+                     new ReportBindingModel
+                     {
+                         DateFrom = dateTimePickerFrom.SelectedDate,
+                         DateTo = dateTimePickerTo.SelectedDate
+                     })).Result;
+               
                     ReportDataSource source = new ReportDataSource("DataSetZayavkas", dataSource);
                     reportViewer.LocalReport.DataSources.Add(source);
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
-                }
-
+               
                 reportViewer.RefreshReport();
             }
             catch (Exception ex)
@@ -82,27 +78,25 @@ namespace CarpenterWorkshopWPF
             };
             if (sfd.ShowDialog() == true)
             {
-                try
+                string fileName = sfd.FileName;
+                Task task = Task.Run(() => APIClient.PostRequestData("api/Report/SaveCustomerOrder", new ReportBindingModel
                 {
-                    var response = APIClient.PostRequest("api/Report/SaveCustomerZayavkas", new ReportBindingModel
-                    {
                         FileName = sfd.FileName,
                         DateFrom = dateTimePickerFrom.SelectedDate,
                         DateTo = dateTimePickerTo.SelectedDate
-                    });
-                    if (response.Result.IsSuccessStatusCode)
-                    {
-                        MessageBox.Show("Выполнено", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    else
-                    {
-                        throw new Exception(APIClient.GetError(response));
-                    }
-                }
-                catch (Exception ex)
+                    }));
+                task.ContinueWith((prevTask) => MessageBox.Show("Список заявок сохранен", "Успех", MessageBoxButton.OK, MessageBoxImage.Information),
+            TaskContinuationOptions.OnlyOnRanToCompletion);
+
+                task.ContinueWith((prevTask) =>
                 {
+                    var ex = (Exception)prevTask.Exception;
+                    while (ex.InnerException != null)
+                    {
+                        ex = ex.InnerException;
+                    }
                     MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                }, TaskContinuationOptions.OnlyOnFaulted);
             }
         }
     }

@@ -5,10 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CarpenterWorkshopWPF"
         mc:Ignorable="d"
-        Title="Пополнение базы" Height="173.233" Width="353.053">
+        Title="Пополнение склада" Height="173.233" Width="353.053">
     <Grid Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
-        <Label x:Name="labelStock" Content="База:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="labelComponent" Content="заготовка:" HorizontalAlignment="Left" Margin="10,41,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="labelStock" Content="Склад:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="labelComponent" Content="Заотовки:" HorizontalAlignment="Left" Margin="10,41,0,0" VerticalAlignment="Top"/>
         <Label x:Name="labelCount" Content="Количество:" HorizontalAlignment="Left" Margin="10,72,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name="comboBoxStorage" HorizontalAlignment="Left" Margin="92,14,0,0" VerticalAlignment="Top" Width="222"/>
         <ComboBox x:Name="comboBoxWoodBlank" HorizontalAlignment="Left" Margin="92,45,0,0" VerticalAlignment="Top" Width="222"/>

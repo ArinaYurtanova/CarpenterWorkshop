@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using CarpenterWorkshopService.BindingModels;
-using CarpenterWorkshopService.ViewModels;
 using Microsoft.Win32;
+using CarpenterWorkshopView;
+using CarpenterWorkshopService.ViewModels;
+using CarpenterWorkshopService.BindingModels;
+
 namespace CarpenterWorkshopWPF
 {
     /// <summary>
@@ -25,11 +25,8 @@ namespace CarpenterWorkshopWPF
         {
             try
             {
-                var response = APIClient.GetRequest("api/Main/GetList");
-                if (response.Result.IsSuccessStatusCode)
-                {
-                    List<OrdProductViewModel> list = APIClient.GetElement<List<OrdProductViewModel>>(response);
-                    if (list != null)
+                List<OrdProductViewModel> list = Task.Run(() => APIClient.GetRequestData<List<OrdProductViewModel>>("api/Main/GetList")).Result;
+                if (list != null)
                 {
                     dataGridViewMain.ItemsSource = list;
                     dataGridViewMain.Columns[0].Visibility = Visibility.Hidden;
@@ -37,15 +34,14 @@ namespace CarpenterWorkshopWPF
                     dataGridViewMain.Columns[3].Visibility = Visibility.Hidden;
                     dataGridViewMain.Columns[5].Visibility = Visibility.Hidden;
                     dataGridViewMain.Columns[1].Width = DataGridLength.Auto;
-                }
-            }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
-                }
+                }                          
             }
             catch (Exception ex)
             {
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -93,7 +89,7 @@ namespace CarpenterWorkshopWPF
             LoadData();
         }
 
-        private void buttonTakeOrderInWork_Click(object sender, EventArgs e)
+        private void buttonTakeZayavkaInWork_Click(object sender, EventArgs e)
         {
             if (dataGridViewMain.SelectedItem != null)
             {
@@ -109,25 +105,23 @@ namespace CarpenterWorkshopWPF
             if (dataGridViewMain.SelectedItem != null)
             {
                 int id = ((OrdProductViewModel)dataGridViewMain.SelectedItem).Id;
-                try
+                Task task = Task.Run(() => APIClient.PostRequestData("api/Main/FinishOrder", new OrdProductBindingModel
                 {
-                    var response = APIClient.PostRequest("api/Main/FinishOrder", new OrdProductBindingModel
-                    {
-                        Id = id
-                    });
-                    if (response.Result.IsSuccessStatusCode)
-                    {
-                        LoadData();
-                    }
-                    else
-                    {
-                        throw new Exception(APIClient.GetError(response));
-                    }
-                }
-                catch (Exception ex)
+                    Id = id
+                }));
+
+                task.ContinueWith((prevTask) => MessageBox.Show("Статус заявки изменен. Обновите список", "Успех", MessageBoxButton.OK, MessageBoxImage.Information),
+                TaskContinuationOptions.OnlyOnRanToCompletion);
+
+                task.ContinueWith((prevTask) =>
                 {
+                    var ex = (Exception)prevTask.Exception;
+                    while (ex.InnerException != null)
+                    {
+                        ex = ex.InnerException;
+                    }
                     MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                }, TaskContinuationOptions.OnlyOnFaulted);
             }
         }
 
@@ -136,25 +130,23 @@ namespace CarpenterWorkshopWPF
             if (dataGridViewMain.SelectedItem != null)
             {
                 int id = ((OrdProductViewModel)dataGridViewMain.SelectedItem).Id;
-                try
+                Task task = Task.Run(() => APIClient.PostRequestData("api/Main/PayOrder", new OrdProductBindingModel
                 {
-                   var response = APIClient.PostRequest("api/Main/PayOrder", new OrdProductBindingModel
-                    {
-                        Id = id
-                    });
-                    if (response.Result.IsSuccessStatusCode)
-                    {
-                        LoadData();
-                    }
-                    else
-                    {
-                        throw new Exception(APIClient.GetError(response));
-                    }
-                }
-                catch (Exception ex)
+                    Id = id
+                }));
+
+                task.ContinueWith((prevTask) => MessageBox.Show("Статус заявки изменен. Обновите список", "Успех", MessageBoxButton.OK, MessageBoxImage.Information),
+                TaskContinuationOptions.OnlyOnRanToCompletion);
+
+                task.ContinueWith((prevTask) =>
                 {
+                    var ex = (Exception)prevTask.Exception;
+                    while (ex.InnerException != null)
+                    {
+                        ex = ex.InnerException;
+                    }
                     MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                }, TaskContinuationOptions.OnlyOnFaulted);
             }
         }
 
@@ -172,30 +164,26 @@ namespace CarpenterWorkshopWPF
 
             if (sfd.ShowDialog() == true)
             {
-
-                try
+                string fileName = sfd.FileName;
+                Task task = Task.Run(() => APIClient.PostRequestData("api/Report/SaveProductPrice", new ReportBindingModel
                 {
+                    FileName = fileName
+                }));
 
-                    var response = APIClient.PostRequest("api/Report/SaveProductPrice", new ReportBindingModel
-                    {
-                        FileName = sfd.FileName
-                    });
-                    if (response.Result.IsSuccessStatusCode)
-                    {
-                        MessageBox.Show("Выполнено", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    else
-                    {
-                        throw new Exception(APIClient.GetError(response));
-                    }
-                }
-                catch (Exception ex)
+                task.ContinueWith((prevTask) => MessageBox.Show("Выполнено", "Успех", MessageBoxButton.OK, MessageBoxImage.Information),
+                TaskContinuationOptions.OnlyOnRanToCompletion);
+
+                task.ContinueWith((prevTask) =>
                 {
-                    System.Windows.MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                    var ex = (Exception)prevTask.Exception;
+                    while (ex.InnerException != null)
+                    {
+                        ex = ex.InnerException;
+                    }
+                    MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }, TaskContinuationOptions.OnlyOnFaulted);
             }
         }
-
         private void загруженностьБазToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SaveFileDialog sfd = new SaveFileDialog
@@ -204,25 +192,24 @@ namespace CarpenterWorkshopWPF
             };
             if (sfd.ShowDialog() == true)
             {
-                try
+                string fileName = sfd.FileName;
+                Task task = Task.Run(() => APIClient.PostRequestData("api/Report/SaveStoragesLoad", new ReportBindingModel
                 {
-                    var response = APIClient.PostRequest("api/Report/SaveStoragesLoad", new ReportBindingModel
-                    {
-                        FileName = sfd.FileName
-                    });
-                    if (response.Result.IsSuccessStatusCode)
-                    {
-                        MessageBox.Show("Выполнено", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    else
-                    {
-                        throw new Exception(APIClient.GetError(response));
-                    }
-                }
-                catch (Exception ex)
+                    FileName = fileName
+                }));
+
+                task.ContinueWith((prevTask) => MessageBox.Show("Выполнено", "Успех", MessageBoxButton.OK, MessageBoxImage.Information),
+                TaskContinuationOptions.OnlyOnRanToCompletion);
+
+                task.ContinueWith((prevTask) =>
                 {
+                    var ex = (Exception)prevTask.Exception;
+                    while (ex.InnerException != null)
+                    {
+                        ex = ex.InnerException;
+                    }
                     MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                }, TaskContinuationOptions.OnlyOnFaulted);
             }
         }
 

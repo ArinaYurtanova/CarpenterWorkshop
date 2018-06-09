@@ -1,5 +1,6 @@
 ﻿using CarpenterWorkshopService.BindingModels;
 using CarpenterWorkshopService.ViewModels;
+using CarpenterWorkshopView;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,20 +33,21 @@ namespace CarpenterWorkshopWPF
         {
             try
             {
-                var response = APIClient.GetRequest("api/Storage/GetList");
-                if (response.Result.IsSuccessStatusCode)
-                {
-                    List<StorageViewModel> list = APIClient.GetElement<List<StorageViewModel>>(response);
-                    if (list != null)
+                List<StorageViewModel> list = Task.Run(() => APIClient.GetRequestData<List<StorageViewModel>>("api/Storage/GetList")).Result;
+                if (list != null)
                     {
                         dataGridViewStorages.ItemsSource = list;
                         dataGridViewStorages.Columns[0].Visibility = Visibility.Hidden;
                         dataGridViewStorages.Columns[1].Width = DataGridLength.Auto;
                     }
-                }
+                
             }
             catch (Exception ex)
             {
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -78,19 +80,20 @@ namespace CarpenterWorkshopWPF
                     MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
                     int id = ((StorageViewModel)dataGridViewStorages.SelectedItem).Id;
-                    try
+                    Task task = Task.Run(() => APIClient.PostRequestData("api/Storage/DelElement", new CustomerBidingModel { Id = id }));
+
+                    task.ContinueWith((prevTask) => MessageBox.Show("Запись удалена. Обновите список", "Успех", MessageBoxButton.OK, MessageBoxImage.Information),
+                    TaskContinuationOptions.OnlyOnRanToCompletion);
+
+                    task.ContinueWith((prevTask) =>
                     {
-                        var response = APIClient.PostRequest("api/Storage/DelElement", new CustomerBidingModel { Id = id });
-                        if (!response.Result.IsSuccessStatusCode)
+                        var ex = (Exception)prevTask.Exception;
+                        while (ex.InnerException != null)
                         {
-                            throw new Exception(APIClient.GetError(response));
+                            ex = ex.InnerException;
                         }
-                    }
-                    catch (Exception ex)
-                    {
                         MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                    LoadData();
+                    }, TaskContinuationOptions.OnlyOnFaulted);
                 }
             }
         }

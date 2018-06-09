@@ -1,5 +1,6 @@
 ﻿using CarpenterWorkshopService.BindingModels;
 using CarpenterWorkshopService.ViewModels;
+using CarpenterWorkshopView;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,8 +8,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
 
 
 namespace CarpenterWorkshopWPF
@@ -35,19 +34,15 @@ namespace CarpenterWorkshopWPF
             {
                 try
                 {
-                    var response = APIClient.GetRequest("api/WoodBlank/Get/" + id.Value);
-                    if (response.Result.IsSuccessStatusCode)
-                    {
-                        var WoodBlank = APIClient.GetElement<WoodBlankViewModel>(response);
-                        textBoxName.Text = WoodBlank.WoodBlanksName;
-                    }
-                    else
-                    {
-                        throw new Exception(APIClient.GetError(response));
-                    }
+                    var WoodBlank = Task.Run(() => APIClient.GetRequestData<WoodBlankViewModel>("api/WoodBlank/Get/" + id.Value)).Result;
+                    textBoxName.Text = WoodBlank.WoodBlanksName;                   
                 }
                 catch (Exception ex)
                 {
+                    while (ex.InnerException != null)
+                    {
+                        ex = ex.InnerException;
+                    }
                     MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
@@ -60,39 +55,37 @@ namespace CarpenterWorkshopWPF
                 MessageBox.Show("Заполните название", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            try
+            string name = textBoxName.Text;
+            Task task;
+            if (id.HasValue)
             {
-                Task<HttpResponseMessage> response;
-                if (id.HasValue)
+                task = Task.Run(() => APIClient.PostRequestData("api/WoodBlank/UpdElement", new WoodBlanksBindingModel
                 {
-                    response = APIClient.PostRequest("api/WoodBlank/UpdElement", new WoodBlanksBindingModel
-                    {
-                        Id = id.Value,
-                        WoodBlanksName = textBoxName.Text
-                    });
-                }
-                else
-                {
-                    response = APIClient.PostRequest("api/WoodBlank/AddElement", new WoodBlanksBindingModel
-                    {
-                        WoodBlanksName = textBoxName.Text
-                    });
-                }
-                if (response.Result.IsSuccessStatusCode)
-                {
-                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information);
-                    DialogResult = true;
-                    Close();
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
-                }
+                    Id = id.Value,
+                    WoodBlanksName = name
+                }));
             }
-            catch (Exception ex)
+            else
             {
+                task = Task.Run(() => APIClient.PostRequestData("api/WoodBlank/AddElement", new WoodBlanksBindingModel
+                {
+                    WoodBlanksName = name
+                }));
+            }
+
+            task.ContinueWith((prevTask) => MessageBox.Show("Сохранение прошло успешно. Обновите список", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information),
+                TaskContinuationOptions.OnlyOnRanToCompletion);
+            task.ContinueWith((prevTask) =>
+            {
+                var ex = (Exception)prevTask.Exception;
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            }, TaskContinuationOptions.OnlyOnFaulted);
+
+            Close();
         }
 
         private void buttonCancel_Click(object sender, EventArgs e)
